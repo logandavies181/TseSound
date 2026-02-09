@@ -5,12 +5,12 @@ export class ScoreLine {
     public duration: Duration,
     public startOffset: number,
     // TODO: velocity / amplitude
-    public args: string[] = []
+    public args: string[] = [],
   ) {}
 
   playLength(): number {
     const d = this.duration
-    return d.noteLength*d.soundRatio
+    return d.noteLength * d.soundRatio
   }
 }
 
@@ -50,18 +50,22 @@ export class Bar {
 
   render(startTime: number): string {
     const noteSpeed = this.noteSpeed()
-    return this.contents.map(itm => {
-      return `i${itm.instrumentIdx} ${itm.startOffset*noteSpeed + startTime} ${itm.playLength()*noteSpeed} ${itm.note.frequency} 0.5 ${itm.args.join(" ")}`
-    }).join("\n")
+    return this.contents
+      .map((itm) => {
+        return `i${itm.instrumentIdx} ${
+          itm.startOffset * noteSpeed + startTime
+        } ${itm.playLength() * noteSpeed} ${itm.note.frequency} 0.5 ${itm.args.join(" ")}`
+      })
+      .join("\n")
   }
 
   noteSpeed(): number {
     // Csound runs at 60bpm
-    return 60*(this.timeSignature.doubleTime ? 2 : 1) / this.bpm
+    return (60 * (this.timeSignature.doubleTime ? 2 : 1)) / this.bpm
   }
 
   barDuration(): number {
-    return this.timeSignature.beatsPerBar*this.noteSpeed()
+    return this.timeSignature.beatsPerBar * this.noteSpeed()
   }
 }
 

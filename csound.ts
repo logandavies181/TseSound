@@ -28,7 +28,7 @@ export class ScoreFile {
 
   render() {
     console.log(
-`<CsoundSynthesizer>
+      `<CsoundSynthesizer>
 <CsOptions>
 ${this.options}
 </CsOptions>
@@ -38,15 +38,20 @@ ksmps  = ${this.instruments.mps}
 0dbfs  = ${this.instruments.dbfs}
 nchnls = ${this.instruments.numChannels}
 
-${this.instruments.instruments.map(instrument => `
+${this.instruments.instruments
+  .map(
+    (instrument) => `
 instr ${instrument.idx}
   ${instrument.code}
 endin
-`).join("\n")}
+`,
+  )
+  .join("\n")}
 </CsInstruments>
 <CsScore>
 ${this.score}
 </CsScore>
-</CsoundSynthesizer>`)
+</CsoundSynthesizer>`,
+    )
   }
 }

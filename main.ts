@@ -103,10 +103,10 @@ const lines = [
 ]
 
 const bars = [
-  new Bar(lines[0], 100, { beatsPerBar: 4, doubleTime: false }),
-  new Bar(lines[1], 100, { beatsPerBar: 4, doubleTime: false }),
-  new Bar(lines[2], 100, { beatsPerBar: 4, doubleTime: false }),
-  new Bar(lines[3], 100, { beatsPerBar: 4, doubleTime: false }),
+  new Bar(lines[0], 100, 4),
+  new Bar(lines[1], 100, 4),
+  new Bar(lines[2], 100, 4),
+  new Bar(lines[3], 100, 4),
 ]
 
 const scorebuilder = new ScoreBuilder(bars)

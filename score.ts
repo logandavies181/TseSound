@@ -45,7 +45,8 @@ export class Bar {
   constructor(
     public contents: ScoreLine[],
     public bpm: number,
-    public timeSignature: TimeSignature,
+    // Reduced fractional time signature. 4/4 = 1.
+    public timeSignature: number,
   ) {}
 
   render(startTime: number): string {
@@ -61,15 +62,10 @@ export class Bar {
 
   noteSpeed(): number {
     // Csound runs at 60bpm
-    return (60 * (this.timeSignature.doubleTime ? 2 : 1)) / this.bpm
+    return 60 / this.bpm
   }
 
   barDuration(): number {
-    return this.timeSignature.beatsPerBar * this.noteSpeed()
+    return this.timeSignature * this.noteSpeed()
   }
-}
-
-export type TimeSignature = {
-  beatsPerBar: number
-  doubleTime: boolean
 }

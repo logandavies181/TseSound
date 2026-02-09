@@ -43,7 +43,6 @@ export class Note {
 
 export class Bar {
   constructor(
-    public idx: number,
     public contents: ScoreLine[],
     public bpm: number,
     public timeSignature: TimeSignature,
@@ -62,7 +61,7 @@ export class Bar {
   }
 
   barDuration(): number {
-    return this.timeSignature.beatsPerBar/this.noteSpeed()
+    return this.timeSignature.beatsPerBar*this.noteSpeed()
   }
 }
 

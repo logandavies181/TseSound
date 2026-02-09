@@ -1,3 +1,4 @@
+import { ScoreBuilder } from "./builders.ts";
 import { InstrumentSection, ScoreFile } from "./csound.ts"
 import { Bar, Note, ScoreLine } from "./score.ts";
 
@@ -102,13 +103,14 @@ const lines = [
 ]
 
 const bars = [
-  new Bar(1, lines[0], 100, {beatsPerBar: 4, doubleTime: false}),
-  new Bar(2, lines[1], 100, {beatsPerBar: 4, doubleTime: false}),
-  new Bar(3, lines[2], 100, {beatsPerBar: 4, doubleTime: false}),
-  new Bar(4, lines[3], 100, {beatsPerBar: 4, doubleTime: false}),
+  new Bar(lines[0], 100, {beatsPerBar: 4, doubleTime: false}),
+  new Bar(lines[1], 100, {beatsPerBar: 4, doubleTime: false}),
+  new Bar(lines[2], 100, {beatsPerBar: 4, doubleTime: false}),
+  new Bar(lines[3], 100, {beatsPerBar: 4, doubleTime: false}),
 ]
 
-const score = bars.map(itm => itm.render((itm.idx-1) * 4 * 60/100)).join("\n")
+const scorebuilder = new ScoreBuilder(bars)
+const score = scorebuilder.render()
 
 const file = new ScoreFile(options, instrumentsSection, score)
 file.render()

@@ -1,6 +1,6 @@
 import { ScoreBuilder } from "./builders.ts"
 import { InstrumentSection, ScoreFile } from "./csound.ts"
-import { Bar, Note, Pitch } from "./score.ts"
+import { Bar, Chord, Note, Pitch } from "./score.ts"
 
 const options = "-odac"
 
@@ -56,13 +56,21 @@ const instrumentsSection: InstrumentSection = {
 //   e
 // `
 
+const a4 = Pitch.fromFrequency(440)
 const c5 = Pitch.fromFrequency(523.25)
 const d5 = Pitch.fromFrequency(587.33)
 const e5 = Pitch.fromFrequency(659.26)
+const f5 = Pitch.fromFrequency(698.46)
 const g5 = Pitch.fromFrequency(783.99)
+const a5 = Pitch.fromFrequency(880)
+const b5 = Pitch.fromFrequency(987.77)
 
 function n(p: Pitch, length: number): Note {
   return { pitch: p, duration: { noteLength: length, soundRatio: 0.8 } }
+}
+
+function c(p: Pitch[], length: number): Chord {
+  return { pitches: p, duration: { noteLength: length, soundRatio: 0.8 } }
 }
 
 const notes = [
@@ -101,6 +109,18 @@ const notes = [
   n(c5, 2),
 ]
 
+const chords = [
+  c([c5, e5, g5], 4),
+
+  c([g5, b5, d5], 2),
+  c([c5, e5, g5], 2),
+
+  c([c5, e5, g5], 4),
+
+  c([g5, b5, d5], 2),
+  c([c5, e5, g5], 2),
+]
+
 const bars = ((b: Bar, _n: number) => {
   const ret = []
   for (let i = 0; i < _n; i++) {
@@ -111,6 +131,7 @@ const bars = ((b: Bar, _n: number) => {
 
 const scorebuilder = new ScoreBuilder(bars)
 scorebuilder.pushNotes(0, 1, notes)
+scorebuilder.pushChords(0, 1, chords)
 const score = scorebuilder.render()
 
 const file = new ScoreFile(options, instrumentsSection, score)

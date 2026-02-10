@@ -1,4 +1,4 @@
-import { Bar, Note, ScoreLine } from "./score.ts"
+import { Bar, Chord, Note, ScoreLine } from "./score.ts"
 
 export class ScoreBuilder {
   constructor(private bars: Bar[] = []) {}
@@ -13,6 +13,24 @@ export class ScoreBuilder {
     for (const note of notes) {
       this.bars[currBar].contents.push(new ScoreLine(instrumentIdx, note, offset))
       offset += note.duration.noteLength
+
+      const timeSignature = this.bars[currBar].timeSignature
+      if (offset >= timeSignature) {
+        offset -= timeSignature
+        currBar++
+      }
+    }
+  }
+
+  pushChords(bar: number, instrumentIdx: number, chords: Chord[]): void {
+    let currBar = bar
+    let offset = 0
+    for (const chord of chords) {
+      for (const pitch of chord.pitches) {
+        const duration = chord.duration
+        this.bars[currBar].contents.push(new ScoreLine(instrumentIdx, { pitch, duration }, offset))
+      }
+      offset += chord.duration.noteLength
 
       const timeSignature = this.bars[currBar].timeSignature
       if (offset >= timeSignature) {

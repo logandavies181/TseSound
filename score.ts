@@ -18,6 +18,11 @@ export type Note = {
   duration: Duration
 }
 
+export type Chord = {
+  pitches: Pitch[]
+  duration: Duration
+}
+
 export type Duration = {
   // How long relative to the note length to hold for.
   soundRatio: number

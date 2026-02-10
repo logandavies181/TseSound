@@ -1,6 +1,6 @@
 import { ScoreBuilder } from "./builders.ts"
 import { InstrumentSection, ScoreFile } from "./csound.ts"
-import { Bar, Duration, Note, Pitch, ScoreLine } from "./score.ts"
+import { Bar, Note, Pitch } from "./score.ts"
 
 const options = "-odac"
 
@@ -94,17 +94,20 @@ const notes = [
   n(d5, 0.5),
   n(d5, 0.5),
   n(e5, 0.5),
-  n(d5, 0.5),
+  n(d5, 0.5/3),
+  n(e5, 0.5/3),
+  n(d5, 0.5/3),
 
   n(c5, 2),
 ]
 
-const bars = [
-  new Bar([], 100, 4),
-  new Bar([], 100, 4),
-  new Bar([], 100, 4),
-  new Bar([], 100, 4),
-]
+const bars = ((b: Bar, _n: number) => {
+  const ret = []
+  for (let i = 0; i < _n; i++) {
+    ret.push(new Bar([], b.bpm, b.timeSignature))
+  }
+  return ret
+})(new Bar([], 200, 4), 4)
 
 const scorebuilder = new ScoreBuilder(bars)
 scorebuilder.pushNotes(0, 1, notes)

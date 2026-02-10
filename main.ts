@@ -1,6 +1,6 @@
 import { ScoreBuilder } from "./builders.ts"
 import { InstrumentSection, ScoreFile } from "./csound.ts"
-import { Bar, Note, ScoreLine } from "./score.ts"
+import { Bar, Duration, Note, Pitch, ScoreLine } from "./score.ts"
 
 const options = "-odac"
 
@@ -56,57 +56,61 @@ const instrumentsSection: InstrumentSection = {
 //   e
 // `
 
-const c5 = Note.fromFrequency(523.25)
-const d5 = Note.fromFrequency(587.33)
-const e5 = Note.fromFrequency(659.26)
-const g5 = Note.fromFrequency(783.99)
+const c5 = Pitch.fromFrequency(523.25)
+const d5 = Pitch.fromFrequency(587.33)
+const e5 = Pitch.fromFrequency(659.26)
+const g5 = Pitch.fromFrequency(783.99)
+
+function n(p: Pitch, length: number): Note {
+  return {pitch: p, duration: {noteLength: length, soundRatio: 0.8}}
+}
 
 const lines = [
   [
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
-    new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
-    new ScoreLine(1, c5, { noteLength: 0.5, soundRatio: 0.8 }, 1),
-    new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 1.5),
+    new ScoreLine(1, n(e5, 0.5), 0),
+    new ScoreLine(1, n(d5, 0.5), 0.5),
+    new ScoreLine(1, n(c5, 0.5), 1),
+    new ScoreLine(1, n(d5, 0.5), 1.5),
 
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2),
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2.5),
-    new ScoreLine(1, e5, { noteLength: 1, soundRatio: 0.8 }, 3),
+    new ScoreLine(1, n(e5, 0.5), 2),
+    new ScoreLine(1, n(e5, 0.5), 2.5),
+    new ScoreLine(1, n(e5, 1), 3),
   ],
-  [
-    new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
-    new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
-    new ScoreLine(1, d5, { noteLength: 1, soundRatio: 0.8 }, 1),
-
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2),
-    new ScoreLine(1, g5, { noteLength: 0.5, soundRatio: 0.8 }, 2.5),
-    new ScoreLine(1, g5, { noteLength: 1, soundRatio: 0.8 }, 3),
-  ],
-  [
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
-    new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
-    new ScoreLine(1, c5, { noteLength: 0.5, soundRatio: 0.8 }, 1),
-    new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 1.5),
-
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2),
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2.5),
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 3),
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 3.5),
-  ],
-  [
-    new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
-    new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
-    new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 1),
-    new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 1.5),
-
-    new ScoreLine(1, c5, { noteLength: 2, soundRatio: 0.8 }, 2),
-  ],
+  // [
+  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
+  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
+  //   new ScoreLine(1, d5, { noteLength: 1, soundRatio: 0.8 }, 1),
+  //
+  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2),
+  //   new ScoreLine(1, g5, { noteLength: 0.5, soundRatio: 0.8 }, 2.5),
+  //   new ScoreLine(1, g5, { noteLength: 1, soundRatio: 0.8 }, 3),
+  // ],
+  // [
+  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
+  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
+  //   new ScoreLine(1, c5, { noteLength: 0.5, soundRatio: 0.8 }, 1),
+  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 1.5),
+  //
+  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2),
+  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2.5),
+  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 3),
+  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 3.5),
+  // ],
+  // [
+  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
+  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
+  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 1),
+  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 1.5),
+  //
+  //   new ScoreLine(1, c5, { noteLength: 2, soundRatio: 0.8 }, 2),
+  // ],
 ]
 
 const bars = [
   new Bar(lines[0], 100, 4),
-  new Bar(lines[1], 100, 4),
-  new Bar(lines[2], 100, 4),
-  new Bar(lines[3], 100, 4),
+  // new Bar(lines[1], 100, 4),
+  // new Bar(lines[2], 100, 4),
+  // new Bar(lines[3], 100, 4),
 ]
 
 const scorebuilder = new ScoreBuilder(bars)

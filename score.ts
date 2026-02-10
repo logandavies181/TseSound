@@ -2,16 +2,20 @@ export class ScoreLine {
   constructor(
     public instrumentIdx: number,
     public note: Note,
-    public duration: Duration,
     public startOffset: number,
     // TODO: velocity / amplitude
     public args: string[] = [],
   ) {}
 
   playLength(): number {
-    const d = this.duration
+    const d = this.note.duration
     return d.noteLength * d.soundRatio
   }
+}
+
+export type Note = {
+  pitch: Pitch
+  duration: Duration
 }
 
 export type Duration = {
@@ -21,7 +25,7 @@ export type Duration = {
   noteLength: number
 }
 
-export class Note {
+export class Pitch {
   frequency: number
   pitch: string
 
@@ -34,8 +38,8 @@ export class Note {
     this.pitch = pitch!
   }
 
-  static fromFrequency(frequency: number): Note {
-    const ret = new Note()
+  static fromFrequency(frequency: number): Pitch {
+    const ret = new Pitch()
     ret.frequency = frequency
     return ret
   }
@@ -55,7 +59,7 @@ export class Bar {
       .map((itm) => {
         return `i${itm.instrumentIdx} ${
           itm.startOffset * noteSpeed + startTime
-        } ${itm.playLength() * noteSpeed} ${itm.note.frequency} 0.5 ${itm.args.join(" ")}`
+        } ${itm.playLength() * noteSpeed} ${itm.note.pitch.frequency} 0.5 ${itm.args.join(" ")}`
       })
       .join("\n")
   }

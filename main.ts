@@ -65,55 +65,49 @@ function n(p: Pitch, length: number): Note {
   return {pitch: p, duration: {noteLength: length, soundRatio: 0.8}}
 }
 
-const lines = [
-  [
-    new ScoreLine(1, n(e5, 0.5), 0),
-    new ScoreLine(1, n(d5, 0.5), 0.5),
-    new ScoreLine(1, n(c5, 0.5), 1),
-    new ScoreLine(1, n(d5, 0.5), 1.5),
+const notes = [
+  n(e5, 0.5),
+  n(d5, 0.5),
+  n(c5, 0.5),
+  n(d5, 0.5),
 
-    new ScoreLine(1, n(e5, 0.5), 2),
-    new ScoreLine(1, n(e5, 0.5), 2.5),
-    new ScoreLine(1, n(e5, 1), 3),
-  ],
-  // [
-  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
-  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
-  //   new ScoreLine(1, d5, { noteLength: 1, soundRatio: 0.8 }, 1),
-  //
-  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2),
-  //   new ScoreLine(1, g5, { noteLength: 0.5, soundRatio: 0.8 }, 2.5),
-  //   new ScoreLine(1, g5, { noteLength: 1, soundRatio: 0.8 }, 3),
-  // ],
-  // [
-  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
-  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
-  //   new ScoreLine(1, c5, { noteLength: 0.5, soundRatio: 0.8 }, 1),
-  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 1.5),
-  //
-  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2),
-  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 2.5),
-  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 3),
-  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 3.5),
-  // ],
-  // [
-  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0),
-  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 0.5),
-  //   new ScoreLine(1, e5, { noteLength: 0.5, soundRatio: 0.8 }, 1),
-  //   new ScoreLine(1, d5, { noteLength: 0.5, soundRatio: 0.8 }, 1.5),
-  //
-  //   new ScoreLine(1, c5, { noteLength: 2, soundRatio: 0.8 }, 2),
-  // ],
+  n(e5, 0.5),
+  n(e5, 0.5),
+  n(e5, 1),
+
+  n(d5, 0.5),
+  n(d5, 0.5),
+  n(d5, 1),
+
+  n(e5, 0.5),
+  n(g5, 0.5),
+  n(g5, 1),
+  n(e5, 0.5),
+  n(d5, 0.5),
+  n(c5, 0.5),
+  n(d5, 0.5),
+
+  n(e5, 0.5),
+  n(e5, 0.5),
+  n(e5, 0.5),
+  n(e5, 0.5),
+  n(d5, 0.5),
+  n(d5, 0.5),
+  n(e5, 0.5),
+  n(d5, 0.5),
+
+  n(c5, 2),
 ]
 
 const bars = [
-  new Bar(lines[0], 100, 4),
-  // new Bar(lines[1], 100, 4),
-  // new Bar(lines[2], 100, 4),
-  // new Bar(lines[3], 100, 4),
+  new Bar([], 100, 4),
+  new Bar([], 100, 4),
+  new Bar([], 100, 4),
+  new Bar([], 100, 4),
 ]
 
 const scorebuilder = new ScoreBuilder(bars)
+scorebuilder.pushNotes(0, 1, notes)
 const score = scorebuilder.render()
 
 const file = new ScoreFile(options, instrumentsSection, score)

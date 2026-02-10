@@ -1,9 +1,7 @@
 import { Bar, Note, ScoreLine } from "./score.ts"
 
 export class ScoreBuilder {
-  constructor(private bars: Bar[] = []) {
-    this.bars.unshift(new Bar([], 0, 0))
-  }
+  constructor(private bars: Bar[] = []) {}
 
   push(...bars: Bar[]): number {
     return this.bars.push(...bars)
@@ -26,7 +24,7 @@ export class ScoreBuilder {
 
   renderLines(): string[] {
     let time = 0
-    return this.bars.slice(1).map((itm) => {
+    return this.bars.map((itm) => {
       const line = itm.render(time)
       time += itm.barDuration()
       return line

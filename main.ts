@@ -62,7 +62,7 @@ const e5 = Pitch.fromFrequency(659.26)
 const g5 = Pitch.fromFrequency(783.99)
 
 function n(p: Pitch, length: number): Note {
-  return {pitch: p, duration: {noteLength: length, soundRatio: 0.8}}
+  return { pitch: p, duration: { noteLength: length, soundRatio: 0.8 } }
 }
 
 const notes = [
@@ -94,9 +94,9 @@ const notes = [
   n(d5, 0.5),
   n(d5, 0.5),
   n(e5, 0.5),
-  n(d5, 0.5/3),
-  n(e5, 0.5/3),
-  n(d5, 0.5/3),
+  n(d5, 0.5 / 3),
+  n(e5, 0.5 / 3),
+  n(d5, 0.5 / 3),
 
   n(c5, 2),
 ]

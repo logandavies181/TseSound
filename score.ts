@@ -23,6 +23,14 @@ export type Chord = {
   duration: Duration
 }
 
+export function n(p: Pitch, length: number): Chord {
+  return { pitches: [p], duration: { noteLength: length, soundRatio: 0.8 } }
+}
+
+export function c(p: Pitch[], length: number): Chord {
+  return { pitches: p, duration: { noteLength: length, soundRatio: 1 } }
+}
+
 export type Duration = {
   // How long relative to the note length to hold for.
   soundRatio: number

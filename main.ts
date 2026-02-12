@@ -1,6 +1,6 @@
 import { ScoreBuilder } from "./builders.ts"
 import { InstrumentSection, ScoreFile } from "./csound.ts"
-import { Bar, Chord, Note, Pitch } from "./score.ts"
+import { c, n, Bar, Pitch } from "./score.ts"
 
 const options = "-odac"
 
@@ -65,14 +65,6 @@ const g5 = Pitch.fromFrequency(783.99)
 const a5 = Pitch.fromFrequency(880)
 const b5 = Pitch.fromFrequency(987.77)
 
-function n(p: Pitch, length: number): Note {
-  return { pitch: p, duration: { noteLength: length, soundRatio: 0.8 } }
-}
-
-function c(p: Pitch[], length: number): Chord {
-  return { pitches: p, duration: { noteLength: length, soundRatio: 0.8 } }
-}
-
 const notes = [
   n(e5, 0.5),
   n(d5, 0.5),
@@ -127,10 +119,10 @@ const bars = ((b: Bar, _n: number) => {
     ret.push(new Bar([], b.bpm, b.timeSignature))
   }
   return ret
-})(new Bar([], 200, 4), 4)
+})(new Bar([], 100, 4), 4)
 
 const scorebuilder = new ScoreBuilder(bars)
-scorebuilder.pushNotes(0, 1, notes)
+scorebuilder.pushChords(0, 1, notes)
 scorebuilder.pushChords(0, 1, chords)
 const score = scorebuilder.render()
 

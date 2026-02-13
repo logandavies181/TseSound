@@ -7,13 +7,13 @@ export class ScoreBuilder {
     return this.bars.push(...bars)
   }
 
-  pushChords(bar: number, instrumentIdx: number, chords: Chord[]): void {
+  pushChords(bar: number, instrumentIdx: number, chords: Chord[], amplitude?: number): void {
     let currBar = bar
     let offset = 0
     for (const chord of chords) {
       for (const pitch of chord.pitches) {
         const duration = chord.duration
-        this.bars[currBar].contents.push(new ScoreLine(instrumentIdx, { pitch, duration }, offset))
+        this.bars[currBar].contents.push(new ScoreLine(instrumentIdx, { pitch, duration }, offset, amplitude))
       }
       offset += chord.duration.noteLength
 

@@ -1,6 +1,7 @@
 import { ScoreBuilder } from "./builders.ts"
 import { InstrumentSection, ScoreFile } from "./csound.ts"
-import { c, n, Bar, Pitch } from "./score.ts"
+import "./notes.ts"
+import { c, n, Bar } from "./score.ts"
 
 const options = "-odac"
 
@@ -28,7 +29,7 @@ const instruments = [
 
       kcf  linseg 2000, 2, 500 ; Filter cutoff envelope
       afilt moogladder amix, kcf, 0.3 ; Warm filter
-      outall afilt
+      outall afilt * iAmp
     `,
   },
 ]
@@ -40,30 +41,6 @@ const instrumentsSection: InstrumentSection = {
   numChannels: 2,
   instruments: instruments,
 }
-
-// const score = `
-//   i1 0   1 1
-//   i1 1   1 1
-//
-//   i2 0.25 1 1
-//   i2 0.75 1 1
-//   i2 1.25 1 1
-//   i2 1.75 1 1
-//
-//   i3 0.5   1 1
-//   i3 1.5   1 1
-//
-//   e
-// `
-
-const a4 = Pitch.fromFrequency(440)
-const c5 = Pitch.fromFrequency(523.25)
-const d5 = Pitch.fromFrequency(587.33)
-const e5 = Pitch.fromFrequency(659.26)
-const f5 = Pitch.fromFrequency(698.46)
-const g5 = Pitch.fromFrequency(783.99)
-const a5 = Pitch.fromFrequency(880)
-const b5 = Pitch.fromFrequency(987.77)
 
 const notes = [
   n(e5, 0.5),
@@ -123,7 +100,7 @@ const bars = ((b: Bar, _n: number) => {
 
 const scorebuilder = new ScoreBuilder(bars)
 scorebuilder.pushChords(0, 1, notes)
-scorebuilder.pushChords(0, 1, chords)
+scorebuilder.pushChords(0, 1, chords, 0.3)
 const score = scorebuilder.render()
 
 const file = new ScoreFile(options, instrumentsSection, score)

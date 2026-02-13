@@ -3,7 +3,7 @@ export class ScoreLine {
     public instrumentIdx: number,
     public note: Note,
     public startOffset: number,
-    // TODO: velocity / amplitude
+    public amplitude: number = 0.5,
     public args: string[] = [],
   ) {}
 
@@ -23,12 +23,24 @@ export type Chord = {
   duration: Duration
 }
 
+// Note
 export function n(p: Pitch, length: number): Chord {
   return { pitches: [p], duration: { noteLength: length, soundRatio: 0.8 } }
 }
 
+// Chord
 export function c(p: Pitch[], length: number): Chord {
   return { pitches: p, duration: { noteLength: length, soundRatio: 1 } }
+}
+
+// Rest
+export function r(length: number): Chord {
+  return { pitches: [], duration: { noteLength: length, soundRatio: 1 } }
+}
+
+// Octave
+export function o(p: Pitch, length: number): Chord {
+  return { pitches: [p, Pitch.fromFrequency(p.frequency*2)], duration: { noteLength: length, soundRatio: 1 } }
 }
 
 export type Duration = {
@@ -72,7 +84,7 @@ export class Bar {
       .map((itm) => {
         return `i${itm.instrumentIdx} ${
           itm.startOffset * noteSpeed + startTime
-        } ${itm.playLength() * noteSpeed} ${itm.note.pitch.frequency} 0.5 ${itm.args.join(" ")}`
+        } ${itm.playLength() * noteSpeed} ${itm.note.pitch.frequency} ${itm.amplitude} ${itm.args.join(" ")}`
       })
       .join("\n")
   }

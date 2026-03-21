@@ -1,5 +1,3 @@
-export type OptionsSection = string
-
 export type InstrumentSection = {
   sampleRate: number
   mps: number
@@ -13,17 +11,14 @@ export type Instrument = {
   code: string
 }
 
+export type OptionsSection = string
+
 export type ScoreSection = string
 
-export class ScoreFile {
-  options: OptionsSection
-  instruments: InstrumentSection
-  score: ScoreSection
+export type Function = string
 
-  constructor(options: OptionsSection, instruments: InstrumentSection, score: ScoreSection) {
-    this.options = options
-    this.instruments = instruments
-    this.score = score
+export class ScoreFile {
+  constructor(public options: OptionsSection, public instruments: InstrumentSection, public score: ScoreSection, public functions: Function[] = []) {
   }
 
   render() {
@@ -49,6 +44,9 @@ endin
   .join("\n")}
 </CsInstruments>
 <CsScore>
+${this.functions.join("\n")}
+;; End function section
+
 ${this.score}
 </CsScore>
 </CsoundSynthesizer>`,

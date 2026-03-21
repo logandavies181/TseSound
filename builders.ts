@@ -41,6 +41,8 @@ export class ScoreBuilder {
   }
 }
 
+export type Envelope = string
+
 export type Filter = string
 
 export type Synth = {
@@ -59,6 +61,7 @@ export class InstrumentBuilder {
     pan: 0.5
   }]
   private filters: Filter[] = []
+  private envelopes: Envelope[] = []
 
   constructor(
     public synths: Synth[] = []
@@ -83,6 +86,11 @@ export class InstrumentBuilder {
     return this
   }
 
+  addEnvelope(e: Envelope): InstrumentBuilder {
+    this.envelopes.push(e)
+    return this
+  }
+
   private renderSynths(): string {
     let count = 1
     let sb = ""
@@ -98,6 +106,30 @@ export class InstrumentBuilder {
     return sb
   }
 
+  private renderFilters(): string {
+    let sb = "aFilt = aMix\n"
+    for (const filt of this.filters) {
+      sb += `      aFilt ${filt}\n`
+    }
+
+    return sb
+  }
+
+  private renderEnvelopes(): string {
+    let count = 0
+    let sb = ""
+    const outputParts: string[] = []
+    for (const env of this.envelopes) {
+      sb += `      kEnv${count} ${env}\n`
+      outputParts.push(`kEnv${count} `)
+      count++
+    }
+
+    sb += `      kEnv = ${outputParts.join(" * ")}\n`
+
+    return sb
+  }
+
   private renderVoice(v: Voice): string {
     return `
       iFreq = p4 * ${v.detune}
@@ -106,13 +138,15 @@ export class InstrumentBuilder {
 
       ${this.renderSynths()}
 
-      ;; TODO: make envelope its own option.
-      kEnv mxadsr 0.05, 0.2, 1, 1
-      aWithEnv = aMix * kEnv
+      ${this.renderFilters()}
+
+      ${this.renderEnvelopes()}
+
+      aMixFiltered = aFilt * kEnv
 
       kPan = ${v.pan}
-      aSigL = aWithEnv * cos((kPan) * $M_PI_2)
-      aSigR = aWithEnv * sin((kPan) * $M_PI_2)
+      aSigL = aMixFiltered * cos((kPan) * $M_PI_2)
+      aSigR = aMixFiltered * sin((kPan) * $M_PI_2)
 
       outs  aSigL, aSigR
     `

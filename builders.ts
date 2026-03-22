@@ -43,7 +43,10 @@ export class ScoreBuilder {
 
 export type Envelope = string
 
-export type Filter = string
+export type Filter = {
+  name: string
+  args: string
+}
 
 export type Synth = {
   opcode: string
@@ -62,10 +65,33 @@ export class InstrumentBuilder {
   }]
   private filters: Filter[] = []
   private envelopes: Envelope[] = []
+  private rawSections: string[] = []
 
   constructor(
     public synths: Synth[] = []
   ) {}
+
+  clone(): InstrumentBuilder {
+    const ret = new InstrumentBuilder(
+      this.synths.map(synth => {
+        return {opcode: synth.opcode, weight: synth.weight}
+      })
+    )
+    for (const voice of this.voices) {
+      ret.addVoice({...voice})
+    }
+    for (const filter of this.filters) {
+      ret.addFilter({...filter})
+    }
+    for (const envelope of this.envelopes) {
+      ret.addEnvelope(envelope)
+    }
+    for (const rawSection of this.rawSections) {
+      ret.addRaw(rawSection)
+    }
+
+    return ret
+  }
 
   addVoice(v: Voice): InstrumentBuilder {
     this.voices.push(v)
@@ -81,8 +107,8 @@ export class InstrumentBuilder {
     return this
   }
 
-  addFilter(f: Filter): InstrumentBuilder {
-    this.filters.push(f)
+  addFilter(name: string, args: string): InstrumentBuilder {
+    this.filters.push({name, args})
     return this
   }
 
@@ -91,9 +117,14 @@ export class InstrumentBuilder {
     return this
   }
 
+  addRaw(s: string): InstrumentBuilder {
+    this.rawSections.push(s)
+    return this
+  }
+
   private renderSynths(): string {
     let count = 1
-    let sb = ""
+    let sb = "\n"
     const outputParts: string[] = []
     for (const synth of this.synths) {
       sb += `      a${count} ${synth.opcode}\n`
@@ -107,17 +138,21 @@ export class InstrumentBuilder {
   }
 
   private renderFilters(): string {
-    let sb = "aFilt = aMix\n"
+    let count = 1
+    let sb = "aFilt0 = aMix\n"
     for (const filt of this.filters) {
-      sb += `      aFilt ${filt}\n`
+      sb += `      aFilt${count} ${filt.name} aFilt${count-1}, ${filt.args}\n`
+      count++
     }
+
+    sb += `      aFilt = aFilt${count-1}`
 
     return sb
   }
 
   private renderEnvelopes(): string {
     let count = 0
-    let sb = ""
+    let sb = "\n"
     const outputParts: string[] = []
     for (const env of this.envelopes) {
       sb += `      kEnv${count} ${env}\n`
@@ -135,6 +170,8 @@ export class InstrumentBuilder {
       iFreq = p4 * ${v.detune}
       iDur = p3
       iAmp = p5
+
+      ${this.rawSections.join("\n      ")}
 
       ${this.renderSynths()}
 

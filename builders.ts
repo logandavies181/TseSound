@@ -29,11 +29,14 @@ export class ScoreBuilder {
 
   renderLines(): string[] {
     let time = 0
-    return this.bars.map((itm) => {
+    const ret = this.bars.map((itm) => {
       const line = itm.render(time)
       time += itm.barDuration()
       return line
     })
+    ret.push(`i 9999 0 ${time + 3}`)
+
+    return ret
   }
 
   render(): string {
@@ -76,6 +79,7 @@ export class InstrumentBuilder {
   private filters: Filter[] = []
   private envelopes: Envelope[] = []
   private rawSections: RawSection[] = []
+  private hasReverb = false
 
   constructor(
     public synths: Synth[] = []
@@ -129,6 +133,11 @@ export class InstrumentBuilder {
 
   addRaw(code: string, location?: RawSectionLocation): InstrumentBuilder {
     this.rawSections.push({code, location: location ?? RawSectionLocation.start})
+    return this
+  }
+
+  addReverb(): InstrumentBuilder {
+    this.hasReverb = true
     return this
   }
 
@@ -202,6 +211,9 @@ export class InstrumentBuilder {
       aSigR = aMixFiltered * sin((kPan) * $M_PI_2)
 
       outs  aSigL, aSigR
+
+      ${this.hasReverb ? "ga1L += aSigL" : ""}
+      ${this.hasReverb ? "ga1R += aSigR" : ""}
     `
   }
 

@@ -24,13 +24,13 @@ export type Chord = {
 }
 
 // Note
-export function n(p: Pitch, length: number): Chord {
-  return { pitches: [p], duration: { noteLength: length, soundRatio: 0.8 } }
+export function n(p: Pitch, length: number, soundRatio: number = 0.8): Chord {
+  return { pitches: [p], duration: { noteLength: length, soundRatio: soundRatio } }
 }
 
 // Chord
-export function c(p: Pitch[], length: number): Chord {
-  return { pitches: p, duration: { noteLength: length, soundRatio: 1 } }
+export function c(p: Pitch[], length: number, soundRatio: number = 1): Chord {
+  return { pitches: p, duration: { noteLength: length, soundRatio: soundRatio } }
 }
 
 // Rest
@@ -39,8 +39,8 @@ export function r(length: number): Chord {
 }
 
 // Octave
-export function o(p: Pitch, length: number): Chord {
-  return { pitches: [p, Pitch.fromFrequency(p.frequency*2)], duration: { noteLength: length, soundRatio: 1 } }
+export function o(p: Pitch, length: number, soundRatio: number = 0.8): Chord {
+  return { pitches: [p, Pitch.fromFrequency(p.frequency*2)], duration: { noteLength: length, soundRatio: soundRatio } }
 }
 
 export type Duration = {

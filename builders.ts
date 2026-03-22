@@ -48,6 +48,16 @@ export type Filter = {
   args: string
 }
 
+export type RawSection = {
+  code: string
+  location: RawSectionLocation
+}
+
+export enum RawSectionLocation {
+  start,
+  afterFilters,
+}
+
 export type Synth = {
   opcode: string
   weight?: number
@@ -65,7 +75,7 @@ export class InstrumentBuilder {
   }]
   private filters: Filter[] = []
   private envelopes: Envelope[] = []
-  private rawSections: string[] = []
+  private rawSections: RawSection[] = []
 
   constructor(
     public synths: Synth[] = []
@@ -81,13 +91,13 @@ export class InstrumentBuilder {
       ret.addVoice({...voice})
     }
     for (const filter of this.filters) {
-      ret.addFilter({...filter})
+      ret.addFilter(filter.name, filter.args)
     }
     for (const envelope of this.envelopes) {
       ret.addEnvelope(envelope)
     }
     for (const rawSection of this.rawSections) {
-      ret.addRaw(rawSection)
+      ret.addRaw(rawSection.code, rawSection.location)
     }
 
     return ret
@@ -117,8 +127,8 @@ export class InstrumentBuilder {
     return this
   }
 
-  addRaw(s: string): InstrumentBuilder {
-    this.rawSections.push(s)
+  addRaw(code: string, location?: RawSectionLocation): InstrumentBuilder {
+    this.rawSections.push({code, location: location ?? RawSectionLocation.start})
     return this
   }
 
@@ -145,7 +155,13 @@ export class InstrumentBuilder {
       count++
     }
 
-    sb += `      aFilt = aFilt${count-1}`
+    sb += `      aFilt = aFilt${count-1}\n`
+
+    for (const rs of this.rawSections) {
+      if (rs.location == RawSectionLocation.afterFilters) {
+        sb += `      ${rs.code}\n`
+      }
+    }
 
     return sb
   }
@@ -171,7 +187,7 @@ export class InstrumentBuilder {
       iDur = p3
       iAmp = p5
 
-      ${this.rawSections.join("\n      ")}
+      ${this.rawSections.filter(rs => rs.location == RawSectionLocation.start).map(rs => rs.code).join("\n      ")}
 
       ${this.renderSynths()}
 

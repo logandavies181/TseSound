@@ -29,7 +29,7 @@ export function n(p: Pitch, length: number, soundRatio: number = 0.8): Chord {
 }
 
 // Chord
-export function c(p: Pitch[], length: number, soundRatio: number = 1): Chord {
+export function c(p: Pitch[], length: number, soundRatio: number = 0.98): Chord {
   return { pitches: p, duration: { noteLength: length, soundRatio: soundRatio } }
 }
 

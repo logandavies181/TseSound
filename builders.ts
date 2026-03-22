@@ -3,6 +3,8 @@ import { Instrument } from "./csound.ts"
 import { Bar, Chord, ScoreLine } from "./score.ts"
 
 export class ScoreBuilder {
+  private reverbTracks: number[] = []
+
   constructor(private bars: Bar[] = []) {}
 
   push(...bars: Bar[]): number {
@@ -27,6 +29,11 @@ export class ScoreBuilder {
     }
   }
 
+  addReverbTrack(rt: number): ScoreBuilder {
+    this.reverbTracks.push(rt)
+    return this
+  }
+
   renderLines(): string[] {
     let time = 0
     const ret = this.bars.map((itm) => {
@@ -34,7 +41,9 @@ export class ScoreBuilder {
       time += itm.barDuration()
       return line
     })
-    ret.push(`i 9999 0 ${time + 3}`)
+    for (const rt of this.reverbTracks) {
+      ret.push(`i${rt} 0 ${time}`)
+    }
 
     return ret
   }
@@ -190,7 +199,8 @@ export class InstrumentBuilder {
     return sb
   }
 
-  private renderVoice(v: Voice): string {
+  private renderVoice(v: Voice, idx: number): string {
+    const rIdx = idx + 1000 // FIXME: hardcoded
     return `
       iFreq = p4 * ${v.detune}
       iDur = p3
@@ -212,22 +222,45 @@ export class InstrumentBuilder {
 
       outs  aSigL, aSigR
 
-      ${this.hasReverb ? "ga1L += aSigL" : ""}
-      ${this.hasReverb ? "ga1R += aSigR" : ""}
+      ${this.hasReverb ? `ga${rIdx}L += aSigL` : ""}
+      ${this.hasReverb ? `ga${rIdx}R += aSigR` : ""}
     `
   }
 
-  render(startIdx: number = 1): Instrument[] {
+  render(startIdx: number = 1): [Instrument[], Instrument[]] {
     let idx = startIdx
     const ret: Instrument[] = []
+    const reverbInstruments: Instrument[] = []
+
+    // only do one reverb track
+    if (this.hasReverb) {
+      const rIdx = idx + 1000 // FIXME: hardcoded
+      reverbInstruments.push({
+        idx: rIdx,
+        code: renderReverbInstrumentCode(rIdx),
+      })
+    }
+
     for (const v of this.voices) {
       ret.push({
         idx,
-        code: this.renderVoice(v)
+        code: this.renderVoice(v, idx)
       })
+      this.hasReverb = false // FIXME: hackily only use reverb globals once
       idx++
     }
 
-    return ret
+    return [ret, reverbInstruments]
   }
+}
+
+function renderReverbInstrumentCode(idx: number): string {
+  return `
+    arevL reverb ga${idx}L, 1.5
+    arevR reverb ga${idx}R, 1.5
+    outs arevL, arevR
+
+    ga${idx}L  = 0
+    ga${idx}R  = 0
+  `
 }

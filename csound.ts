@@ -42,15 +42,6 @@ endin
 `,
   )
   .join("\n")}
-
-;; Hardcoded reverb instrument
-instr 9999
-      arevL reverb ga1L, 1.5
-      arevR reverb ga1R, 1.5
-      outs arevL, arevR
-      ga1L = 0
-      ga1R = 0
-endin
 </CsInstruments>
 <CsScore>
 ${this.functions.join("\n")}

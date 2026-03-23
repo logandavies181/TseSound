@@ -23,6 +23,8 @@ export class ScoreBuilder {
 
       const timeSignature = this.bars[currBar].timeSignature
       if (offset >= timeSignature) {
+        // FIXme: this doesn't account for going over the number of bars.
+        // or the offset being greater than the next bar.
         offset -= timeSignature
         currBar++
       }

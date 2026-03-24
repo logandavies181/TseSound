@@ -87,6 +87,10 @@ class MetaInstrument {
     return this
   }
 
+  numVoices(): number {
+    return this.voices.length
+  }
+
   private renderSynths(): string {
     let count = 1
     let sb = "\n"
@@ -129,7 +133,7 @@ class MetaInstrument {
     return sb
   }
 
-  private renderVoice(v: Voice, idx: number, reverbIdx: number): string {
+  private renderVoice(v: Voice, reverbIdx?: number): string {
     return `
       iFreq = p4 * ${v.detune}
       iDur = p3
@@ -151,17 +155,16 @@ class MetaInstrument {
 
       outs  aSigL, aSigR
 
-      ${this.hasReverb ? `ga${reverbIdx}L += aSigL` : ""}
-      ${this.hasReverb ? `ga${reverbIdx}R += aSigR` : ""}
+      ${reverbIdx && this.hasReverb ? `ga${reverbIdx}L += aSigL` : ""}
+      ${reverbIdx && this.hasReverb ? `ga${reverbIdx}R += aSigR` : ""}
     `
   }
 
-  render(startIdx: number): { instruments: Instrument[], reverb: Instrument | null } {
+  render(startIdx: number, reverbIdx?: number): { instruments: Instrument[], reverb?: Instrument } {
     const instruments: Instrument[] = []
-    let reverb: Instrument | null = null
-    const reverbIdx = startIdx + 1000
+    let reverb: Instrument | undefined = undefined
 
-    if (this.hasReverb) {
+    if (reverbIdx && this.hasReverb) {
       reverb = {
         idx: reverbIdx,
         code: `
@@ -179,8 +182,9 @@ class MetaInstrument {
     for (const v of this.voices) {
       instruments.push({
         idx,
-        code: this.renderVoice(v, idx, reverbIdx)
+        code: this.renderVoice(v, reverbIdx)
       })
+      // FIXME, this is really hacky.
       this.hasReverb = false
       idx++
     }
@@ -189,61 +193,87 @@ class MetaInstrument {
   }
 }
 
+type InstrumentInfo = {
+  startIdx: number
+  numVoices: number
+  reverbIdx?: number
+}
+
 export class Builder {
   private instruments: MetaInstrument[] = []
   private bars: Bar[] = []
   private reverbTracks: number[] = []
-  private instrumentStartIdx = 1
-  private _instrumentIndexMap: Map<string, number> = new Map()
+  private nextIdx = 1
+  private instrumentInfo: Map<string, InstrumentInfo> = new Map()
 
-  withInstrumentStartIdx(idx: number): Builder {
-    this.instrumentStartIdx = idx
-    return this
-  }
-
-  addInstrument(name: string, synths: Synth[]): MetaInstrument {
+  addInstrument(name: string, synths: Synth[], configurator: (mi: MetaInstrument) => void): Builder {
+    if (this.instrumentInfo.has(name)) throw `Instrument with name ${name} already added.`
     const inst = new MetaInstrument(name, synths)
+    configurator(inst)
+    const nextIdx = this.nextIdx
+    this.nextIdx += inst.numVoices()
+    let reverbIdx: number | undefined
+    if (inst.hasReverb) {
+      reverbIdx = this.nextIdx
+      this.nextIdx++;
+    }
+    this.instrumentInfo.set(name, {
+      startIdx: nextIdx,
+      numVoices: inst.numVoices(),
+      reverbIdx: reverbIdx,
+    })
     this.instruments.push(inst)
-    return inst
+    console.log(this.instrumentInfo.get(name))
+    return this
   }
 
   private renderInstruments(): { instruments: Instrument[], reverbInstruments: Instrument[] } {
     const allInstruments: Instrument[] = []
     const reverbInstruments: Instrument[] = []
-    let idx = this.instrumentStartIdx
-    this._instrumentIndexMap.clear()
 
     for (const inst of this.instruments) {
-      this._instrumentIndexMap.set(inst.name, idx)
-      const { instruments, reverb } = inst.render(idx)
+      const info = this.getInstrumentInfo(inst.name)
+      const { instruments, reverb } = inst.render(info.startIdx, info.reverbIdx)
       allInstruments.push(...instruments)
       if (reverb) reverbInstruments.push(reverb)
-      idx += instruments.length
     }
 
     return { instruments: allInstruments, reverbInstruments }
   }
 
-  getInstrumentIndex(name: string): number {
-    const idx = this._instrumentIndexMap.get(name)
-    if (idx === undefined) {
+  private getInstrumentInfo(name: string): InstrumentInfo {
+    const info = this.instrumentInfo.get(name)
+    if (!info) {
       throw new Error(`Instrument "${name}" not found`)
     }
-    return idx
+    return info
   }
 
-  push(...bars: Bar[]): number {
-    return this.bars.push(...bars)
+  getReverbIndex(name: string): number | undefined {
+    const info = this.getInstrumentInfo(name)
+    if (info.reverbIdx === null) {
+      throw new Error(`Instrument "${name}" has no reverb`)
+    }
+    return info.reverbIdx
+  }
+
+  addBars(bpm: number, timeSignature: number, n: number): void {
+    for (let i = 0; i < n; i++) {
+      this.bars.push(new Bar(bpm, timeSignature))
+    }
   }
 
   pushChords(bar: number, instrumentName: string, chords: Chord[], amplitude?: number): void {
-    const instrumentIdx = this.getInstrumentIndex(instrumentName)
+    const { startIdx, numVoices } = this.getInstrumentInfo(instrumentName)
     let currBar = bar
     let offset = 0
     for (const chord of chords) {
-      for (const pitch of chord.pitches) {
+      for (let i = 0; i < chord.pitches.length; i++) {
+        const pitch = chord.pitches[i]
         const duration = chord.duration
-        this.bars[currBar].contents.push(new ScoreLine(instrumentIdx, { pitch, duration }, offset, amplitude))
+        for (let voiceIdx = startIdx; voiceIdx < startIdx + numVoices; voiceIdx++) {
+          this.bars[currBar].contents.push(new ScoreLine(voiceIdx, { pitch, duration }, offset, amplitude))
+        }
       }
       offset += chord.duration.noteLength
 
@@ -253,11 +283,6 @@ export class Builder {
         currBar++
       }
     }
-  }
-
-  addReverbTrack(rt: number): Builder {
-    this.reverbTracks.push(rt)
-    return this
   }
 
   renderScoreLines(): string[] {

@@ -215,6 +215,7 @@ export class Builder {
     let reverbIdx: number | undefined
     if (inst.hasReverb) {
       reverbIdx = this.nextIdx
+      this.reverbTracks.push(reverbIdx)
       this.nextIdx++;
     }
     this.instrumentInfo.set(name, {
@@ -223,7 +224,6 @@ export class Builder {
       reverbIdx: reverbIdx,
     })
     this.instruments.push(inst)
-    console.log(this.instrumentInfo.get(name))
     return this
   }
 

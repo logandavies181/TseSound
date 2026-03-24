@@ -71,8 +71,9 @@ export class Pitch {
 }
 
 export class Bar {
+  public contents: ScoreLine[] = []
+
   constructor(
-    public contents: ScoreLine[],
     public bpm: number,
     // Reduced fractional time signature. 4/4 = 1.
     public timeSignature: number,

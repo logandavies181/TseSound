@@ -28,6 +28,11 @@ export type Voice = {
   pan: number
 }
 
+export enum InstrumentType {
+  synth,
+  percussion,
+}
+
 class MetaInstrument {
   private voices: Voice[] = [{
     detune: 1,
@@ -37,20 +42,25 @@ class MetaInstrument {
   private envelopes: Envelope[] = []
   private rawSections: RawSection[] = []
   hasReverb = false
+  public synths: Synth[] = []
+  private wavFile?: string
 
-  constructor(
+  private constructor(
     public name: string,
-    public synths: Synth[]
+    public type: InstrumentType,
   ) {}
 
-  clone(): MetaInstrument {
-    const ret = new MetaInstrument(this.name, this.synths.map(s => ({ opcode: s.opcode, weight: s.weight })))
-    for (const voice of this.voices) ret.addVoice({ ...voice })
-    for (const filter of this.filters) ret.addFilter(filter.name, filter.args)
-    for (const envelope of this.envelopes) ret.addEnvelope(envelope)
-    for (const rawSection of this.rawSections) ret.addRaw(rawSection.code, rawSection.location)
-    ret.hasReverb = this.hasReverb
-    return ret
+  static newSynth(name: string): MetaInstrument {
+    return new MetaInstrument(name, InstrumentType.synth)
+  }
+
+  static newPercussion(name: string): MetaInstrument {
+    return new MetaInstrument(name, InstrumentType.percussion)
+  }
+
+  withWav(filename: string): MetaInstrument {
+    this.wavFile = filename
+    return this
   }
 
   addVoice(v: Voice): MetaInstrument {
@@ -88,7 +98,7 @@ class MetaInstrument {
   }
 
   numVoices(): number {
-    return this.voices.length
+    return this.type == InstrumentType.synth ? this.voices.length : 1
   }
 
   private renderSynths(): string {
@@ -160,6 +170,18 @@ class MetaInstrument {
     `
   }
 
+  renderPercussion(reverbIdx?: number): string {
+    if (!this.wavFile) throw "wav file expected"
+
+    return `
+      aleft, aright diskin2 "${this.wavFile}", 1, 0
+      outs aleft, aright
+
+      ${reverbIdx && this.hasReverb ? `ga${reverbIdx}L += aSigL` : ""}
+      ${reverbIdx && this.hasReverb ? `ga${reverbIdx}R += aSigR` : ""}
+    `
+  }
+
   render(startIdx: number, reverbIdx?: number): { instruments: Instrument[], reverb?: Instrument } {
     const instruments: Instrument[] = []
     let reverb: Instrument | undefined = undefined
@@ -178,15 +200,28 @@ class MetaInstrument {
       }
     }
 
-    let idx = startIdx
-    for (const v of this.voices) {
-      instruments.push({
-        idx,
-        code: this.renderVoice(v, reverbIdx)
-      })
-      // FIXME, this is really hacky.
-      this.hasReverb = false
-      idx++
+    switch (this.type) {
+      case InstrumentType.synth: {
+        let idx = startIdx
+        for (const v of this.voices) {
+          instruments.push({
+            idx,
+            code: this.renderVoice(v, reverbIdx)
+          })
+          // FIXME, this is really hacky.
+          this.hasReverb = false
+          idx++
+        }
+        break;
+      }
+      case InstrumentType.percussion: {
+        let idx = startIdx
+        instruments.push({
+          idx,
+          code: this.renderPercussion(reverbIdx)
+        })
+        idx++
+      }
     }
 
     return { instruments, reverb }
@@ -206,10 +241,9 @@ export class Builder {
   private nextIdx = 1
   private instrumentInfo: Map<string, InstrumentInfo> = new Map()
 
-  addInstrument(name: string, synths: Synth[], configurator: (mi: MetaInstrument) => void): Builder {
+  private addInstrument(name: string, config: () => MetaInstrument): Builder {
     if (this.instrumentInfo.has(name)) throw `Instrument with name ${name} already added.`
-    const inst = new MetaInstrument(name, synths)
-    configurator(inst)
+    const inst = config()
     const nextIdx = this.nextIdx
     this.nextIdx += inst.numVoices()
     let reverbIdx: number | undefined
@@ -224,6 +258,27 @@ export class Builder {
       reverbIdx: reverbIdx,
     })
     this.instruments.push(inst)
+    return this
+  }
+
+  addSynth(name: string, synths: Synth[], configurator: (mi: MetaInstrument) => void): Builder {
+    const config = () => {
+      const inst = MetaInstrument.newSynth(name)
+      inst.synths.push(...synths)
+      configurator(inst)
+      return inst
+    }
+    this.addInstrument(name, config)
+    return this
+  }
+
+  addPercussion(name: string, filename: string, configurator: (mi: MetaInstrument) => void): Builder {
+    const config = () => {
+      const inst = MetaInstrument.newPercussion(name).withWav(filename)
+      configurator(inst)
+      return inst
+    }
+    this.addInstrument(name, config)
     return this
   }
 

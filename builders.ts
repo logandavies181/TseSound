@@ -174,8 +174,11 @@ class MetaInstrument {
     if (!this.wavFile) throw "wav file expected"
 
     return `
+      iFreq = p4 ;; Ignored
+      iAmp = p5
+
       aleft, aright diskin2 "${this.wavFile}", 1, 0
-      outs aleft, aright
+      outs aleft * iAmp, aright * iAmp
 
       ${reverbIdx && this.hasReverb ? `ga${reverbIdx}L += aSigL` : ""}
       ${reverbIdx && this.hasReverb ? `ga${reverbIdx}R += aSigR` : ""}

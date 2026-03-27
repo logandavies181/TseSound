@@ -272,10 +272,10 @@ export class Builder {
     return this
   }
 
-  addPercussion(name: string, filename: string, configurator: (mi: MetaInstrument) => void): Builder {
+  addPercussion(name: string, filename: string, configurator?: (mi: MetaInstrument) => void): Builder {
     const config = () => {
       const inst = MetaInstrument.newPercussion(name).withWav(filename)
-      configurator(inst)
+      if (configurator) configurator(inst)
       return inst
     }
     this.addInstrument(name, config)

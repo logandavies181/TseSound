@@ -157,7 +157,7 @@ class MetaInstrument {
 
       ${this.renderEnvelopes()}
 
-      aMixFiltered = aFilt * kEnv
+      aMixFiltered = aFilt * kEnv / ${this.numVoices()}
 
       kPan = ${v.pan}
       aSigL = aMixFiltered * cos((kPan) * $M_PI_2)

@@ -4,6 +4,7 @@ import { notes } from "./notes.ts"
 
 export interface ParseOptions {
   barLength: number
+  timeSignature: number
 }
 
 function parseRow(row: string, barLength: number): { noteName: string; patterns: string[] } {
@@ -24,7 +25,7 @@ function parseRow(row: string, barLength: number): { noteName: string; patterns:
 function patternToChord(
   noteName: string,
   pattern: string,
-  duration: number,
+  options: ParseOptions,
 ): Chord | null {
   let startOffset: number | null = null
 
@@ -57,9 +58,8 @@ function patternToChord(
     throw new Error(`Unknown note: ${noteName}`)
   }
 
-  const noteLength = (endOffset - startOffset + 1)
+  const noteLength = ((endOffset - startOffset + 1) / options.barLength) * options.timeSignature
 
-  // TODO: we don't really want soundRatio here.
   return n({ frequency: pitch.frequency, pitch: "" }, noteLength, 0.8)
 }
 
@@ -88,7 +88,7 @@ export function parseTse(content: string, options: ParseOptions): Chord[] {
         continue
       }
 
-      const chord = patternToChord(noteName, pattern, options.barLength)
+      const chord = patternToChord(noteName, pattern, options)
       if (chord) {
         chords.push(chord)
       }

@@ -2,7 +2,7 @@ const NOTE_LETTER_PATTERN = /^[a-gA-G]$/
 const SHARP_FLAT_PATTERN = /^[sSbB]$/
 const DIGIT_PATTERN = /^[0-9]$/
 
-export interface NoteName {
+export type NoteName = {
   letter: string
   accidental: "" | "s" | "S" | "b" | "B"
   octave: number
@@ -59,4 +59,29 @@ export function noteNameToKey(name: string): string {
   const octave = parsed.octave
 
   return `${letter}${accidental}${octave}`
+}
+
+const LETTER_TO_SEMITONE: Record<string, number> = {
+  c: 0,
+  d: 2,
+  e: 4,
+  f: 5,
+  g: 7,
+  a: 9,
+  b: 11,
+}
+
+export function noteNameToSemitones(note: NoteName): number {
+  const letterSemitone = LETTER_TO_SEMITONE[note.letter.toLowerCase()]
+  let accidentalSemitone = 0
+  if (note.accidental === "s" || note.accidental === "S") {
+    accidentalSemitone = 1
+  } else if (note.accidental === "b" || note.accidental === "B") {
+    accidentalSemitone = -1
+  }
+  return note.octave * 12 + letterSemitone + accidentalSemitone
+}
+
+export function semitonesBetween(a: NoteName, b: NoteName): number {
+  return noteNameToSemitones(b) - noteNameToSemitones(a)
 }

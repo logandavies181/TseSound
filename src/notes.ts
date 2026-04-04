@@ -425,4 +425,6 @@ const notes = {
   b9: Pitch.fromFrequency(15804.27),
   bs9: Pitch.fromFrequency(16744.04),
 }
+export { notes }
+
 Object.assign(globalThis, notes)

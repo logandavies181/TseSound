@@ -1,4 +1,4 @@
-import { Chord, n } from "./score.ts"
+import { Chord, n, r } from "./score.ts"
 import { noteNameToKey } from "./dsl.ts"
 import { notes } from "./notes.ts"
 
@@ -22,33 +22,15 @@ function parseRow(row: string, barLength: number): { noteName: string; patterns:
   return { noteName, patterns }
 }
 
-function patternToChord(
+function patternsToChords(
   noteName: string,
-  pattern: string,
+  patterns: string[],
   options: ParseOptions,
-): Chord | null {
-  let startOffset: number | null = null
+): Chord[] {
 
-  for (let i = 0; i < pattern.length; i++) {
-    const char = pattern[i]
-    if (char === "1") {
-      startOffset = i
-      break
-    }
-  }
-
-  if (startOffset === null) {
-    return null
-  }
-
-  let endOffset = startOffset
-  for (let i = startOffset + 1; i < pattern.length; i++) {
-    if (pattern[i] === "0") {
-      endOffset = i
-    } else if (pattern[i] === "-") {
-      break
-    }
-  }
+  // Iterate over all bars for the row, treating it like one massive bar.
+  // The length of the bars is checked in `parseRow`; and notes are allowed to
+  // cross Bar lines, which is handled when pushing chords to the builder.
 
   // TODO: This is relying on the pre-computed notes in notes.ts, which
   // doesn't allow for changing from A=440.
@@ -58,40 +40,72 @@ function patternToChord(
     throw new Error(`Unknown note: ${noteName}`)
   }
 
-  const noteLength = ((endOffset - startOffset + 1) / options.barLength) * options.timeSignature
+  const ret: Chord[] = []
 
-  return n({ frequency: pitch.frequency, pitch: "" }, noteLength, 0.8)
+  const push = (ret: Chord[], currLen: number, isRest: boolean): void => {
+    const len = (currLen / options.barLength) * options.timeSignature
+    if (isRest) {
+      ret.push(r(len))
+    } else {
+      ret.push(n({ frequency: pitch.frequency, pitch: "" }, len, 1))
+    }
+  }
+
+  let currLen = 0
+  let ringing = false
+  const _pattern = patterns.join("")
+  for (let i = 0; i < _pattern.length; i++) {
+    const char = _pattern[i]
+    switch (char) {
+    case "-":
+      if (ringing) {
+        push(ret, currLen, false)
+        currLen = 1
+        ringing = false
+      } else {
+        currLen++
+      }
+      break
+    case "1":
+      push(ret, currLen, !ringing)
+      currLen = 1
+      ringing = true
+      break
+    case "0":
+      if (ringing) {
+        currLen++
+      } else {
+        throw new Error("Unexpected sustain of not ringing note")
+      }
+      break
+    default:
+      throw new Error(`Unexpected char: ${char}`)
+    }
+  }
+
+  return ret
 }
 
-export function parseTse(content: string, options: ParseOptions): Chord[] {
+export function parseTse(content: string, options: ParseOptions): Chord[][] {
   const lines = content.split("\n").filter((line) => line.trim() !== "")
-  const barCount = lines[0].split("|").length - 2
-
   const rows = lines.map((line) => parseRow(line, options.barLength))
 
-  const chords: Chord[] = []
+  const chords: Chord[][] = []
 
-  for (let barIdx = 0; barIdx < barCount; barIdx++) {
-    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
-      const row = rows[rowIdx]
-      const pattern = row.patterns[barIdx]
-      if (pattern.length == 0) {
-        continue
-      }
+  for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+    const row = rows[rowIdx]
+    let noteName: string
+    if (rowIdx === 0) {
+      noteName = rows[0].noteName
+    } else if (row.noteName) {
+      noteName = row.noteName
+    } else {
+      continue
+    }
 
-      let noteName: string
-      if (rowIdx === 0) {
-        noteName = rows[0].noteName
-      } else if (row.noteName) {
-        noteName = row.noteName
-      } else {
-        continue
-      }
-
-      const chord = patternToChord(noteName, pattern, options)
-      if (chord) {
-        chords.push(chord)
-      }
+    const rowChords = patternsToChords(noteName, row.patterns, options)
+    if (rowChords) {
+      chords.push(rowChords)
     }
   }
 

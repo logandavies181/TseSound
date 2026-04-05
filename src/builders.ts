@@ -321,7 +321,18 @@ export class Builder {
     }
   }
 
-  pushChords(bar: number, instrumentName: string, chords: Chord[], amplitude?: number): void {
+  private _isChordListList(val: Chord[]|Chord[][]): val is Chord[][] {
+    return Array.isArray(val[0])
+  }
+
+  pushChords(bar: number, instrumentName: string, chords: Chord[]|Chord[][], amplitude?: number): void {
+    if (this._isChordListList(chords)) {
+      for (const c of chords) {
+        this.pushChords(bar, instrumentName, c, amplitude)
+      }
+      return
+    }
+
     const { startIdx, numVoices } = this.getInstrumentInfo(instrumentName)
     let currBar = bar
     let offset = 0
@@ -341,6 +352,14 @@ export class Builder {
         currBar++
       }
     }
+  }
+
+  pushChordsMany(repeats: number, bar: number, instrumentName: string, chords: Chord[], amplitude?: number): void {
+    const repeatedChords: Chord[] = []
+    for (let i = 0; i < repeats; i++) {
+      repeatedChords.push(...chords)
+    }
+    this.pushChords(bar, instrumentName, repeatedChords, amplitude)
   }
 
   renderScoreLines(): string[] {

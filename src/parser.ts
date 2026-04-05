@@ -1,6 +1,7 @@
 import { Chord, n, r } from "./score.ts"
 import { noteNameToKey } from "./dsl.ts"
 import { notes } from "./notes.ts"
+import { readFileSync } from "node:fs"
 
 export interface ParseOptions {
   barLength: number
@@ -110,4 +111,8 @@ export function parseTse(content: string, options: ParseOptions): Chord[][] {
   }
 
   return chords
+}
+
+export function parseTseFile(fileName: string, options: ParseOptions): Chord[][] {
+  return parseTse(readFileSync(fileName, "utf8"), options)
 }

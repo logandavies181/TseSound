@@ -354,7 +354,13 @@ export class Builder {
     }
   }
 
-  pushChordsMany(repeats: number, bar: number, instrumentName: string, chords: Chord[], amplitude?: number): void {
+  pushChordsMany(repeats: number, bar: number, instrumentName: string, chords: Chord[]|Chord[][], amplitude?: number): void {
+    if (this._isChordListList(chords)) {
+      for (const c of chords) {
+        this.pushChordsMany(repeats, bar, instrumentName, c, amplitude)
+      }
+      return
+    }
     const repeatedChords: Chord[] = []
     for (let i = 0; i < repeats; i++) {
       repeatedChords.push(...chords)

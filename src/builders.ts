@@ -110,7 +110,7 @@ class MetaInstrument {
       outputParts.push(`a${count} * ${synth.weight ?? 1.0 / this.synths.length}`)
       count++
     }
-    sb += `      aMix = ${outputParts.join(" + ")}\n`
+    sb += `      aMix = (${outputParts.join(" + ")}) * kEnv\n`
     return sb
   }
 
@@ -151,13 +151,13 @@ class MetaInstrument {
 
       ${this.rawSections.filter(rs => rs.location == RawSectionLocation.start).map(rs => rs.code).join("\n      ")}
 
+      ${this.renderEnvelopes()}
+
       ${this.renderSynths()}
 
       ${this.renderFilters()}
 
-      ${this.renderEnvelopes()}
-
-      aMixFiltered = aFilt * kEnv / ${this.numVoices()}
+      aMixFiltered = aFilt / ${this.numVoices()}
 
       kPan = ${v.pan}
       aSigL = aMixFiltered * cos((kPan) * $M_PI_2)
@@ -209,7 +209,7 @@ class MetaInstrument {
         for (const v of this.voices) {
           instruments.push({
             idx,
-            code: this.renderVoice(v, reverbIdx)
+            code: this.renderVoice(v, reverbIdx),
           })
           // FIXME, this is really hacky.
           this.hasReverb = false
@@ -221,7 +221,7 @@ class MetaInstrument {
         let idx = startIdx
         instruments.push({
           idx,
-          code: this.renderPercussion(reverbIdx)
+          code: this.renderPercussion(reverbIdx),
         })
         idx++
       }

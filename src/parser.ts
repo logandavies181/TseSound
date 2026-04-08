@@ -83,6 +83,9 @@ function patternsToChords(
       throw new Error(`Unexpected char: ${char}`)
     }
   }
+  // Push the last note - even if it's a rest. Otherwise we miss a note or corrupt
+  // the length of the bar.
+  push(ret, currLen, !ringing)
 
   return ret
 }

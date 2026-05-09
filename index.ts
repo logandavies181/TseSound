@@ -1,3 +1,4 @@
+export * from "./src/cli.ts"
 export * from "./src/csound.ts"
 export * from "./src/score.ts"
 export * from "./src/builders.ts"

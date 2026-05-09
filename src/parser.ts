@@ -1,6 +1,7 @@
 import { Chord, n, r } from "./score.ts"
-import { noteNameToKey, parseNoteName, semitonesBetween } from "./dsl.ts"
+import { NoteName, noteNameToKey, parseNoteName, printNoteName, semitoneDifference } from "./dsl.ts"
 import { notes } from "./notes.ts"
+import { readFileSync } from "node:fs"
 
 export interface ParseOptions {
   timeSignature: number
@@ -16,17 +17,19 @@ export interface Header {
   subBars: SubBarDef[]
 }
 
-function parseHeader(lines: string[]): { header: Header; bodyLines: string[] } {
+function parseHeader(lines: string[]): { header: Header; bodyLines: string[]; numHeaderLines: number } {
   let iotaCount: number | null = null
   const subBars: SubBarDef[] = []
 
   const bodyLines: string[] = []
   let inHeader = true
 
+  let numHeaderLines = 0
   for (const line of lines) {
     const gutter = line.slice(0, 3).trim()
 
     if (inHeader) {
+      numHeaderLines++
       if (gutter === "/") {
         inHeader = false
         continue
@@ -59,7 +62,7 @@ function parseHeader(lines: string[]): { header: Header; bodyLines: string[] } {
     throw new Error("Iota count not declared")
   }
 
-  return { header: { iotaCount, subBars }, bodyLines }
+  return { header: { iotaCount, subBars }, bodyLines, numHeaderLines }
 }
 
 function countIotas(pattern: string, subBars: SubBarDef[]): number {
@@ -96,21 +99,21 @@ function countIotas(pattern: string, subBars: SubBarDef[]): number {
 }
 
 function validateIndicativeNotes(
-  definitiveNote: ReturnType<typeof parseNoteName>,
-  indicativeNotes: { note: NonNullable<ReturnType<typeof parseNoteName>>; rowIdx: number }[],
+  definitiveNote: NoteName,
+  indicativeNotes: { note: NoteName; rowIdx: number }[],
+  startLine: number,
 ) {
-  if (!definitiveNote) return
-
   let prevNote = definitiveNote
-  let expectedDiff = -1
+  let prevIdx = 0
   for (const { note: indicative, rowIdx } of indicativeNotes) {
-    const diff = semitonesBetween(prevNote, indicative)
+    const diff = semitoneDifference(indicative, prevNote)
+    const expectedDiff = rowIdx - prevIdx
     if (diff !== expectedDiff) {
       throw new Error(
-        `Indicative note mismatch at row ${rowIdx + 2}: expected semitone ${expectedDiff} from ${prevNote.letter}${prevNote.octave}, got ${indicative.letter}${indicative.octave}`,
+        `Indicative note mismatch on line ${rowIdx + startLine}: expected semitone ${expectedDiff} between ${printNoteName(prevNote)} and ${printNoteName(indicative)}, got ${diff}`,
       )
     }
-    expectedDiff = diff
+    prevIdx = rowIdx
     prevNote = indicative
   }
 }
@@ -225,20 +228,22 @@ function patternsToChords(
 
 export function parseTse(content: string, options: ParseOptions): Chord[][] {
   const lines = content.split("\n")
-  const { header, bodyLines } = parseHeader(lines)
+  const { header, bodyLines, numHeaderLines } = parseHeader(lines)
 
   const barCount = bodyLines[0].split("|").length - 2
   const rows = bodyLines.map((line) => parseRow(line, header.iotaCount, [...header.subBars]))
 
   const definitiveNote = parseNoteName(rows[0].noteName)
-  const indicativeNotes: { note: NonNullable<ReturnType<typeof parseNoteName>>; rowIdx: number }[] = []
+  if (definitiveNote == null) throw "Definitive Note Name not set"
+
+  const indicativeNotes: { note: NoteName; rowIdx: number }[] = []
   for (let i = 1; i < rows.length; i++) {
     const parsed = parseNoteName(rows[i].noteName)
     if (parsed) {
       indicativeNotes.push({ note: parsed, rowIdx: i })
     }
   }
-  validateIndicativeNotes(definitiveNote, indicativeNotes)
+  validateIndicativeNotes(definitiveNote, indicativeNotes, numHeaderLines + 1)
 
   const chords: Chord[][] = []
 
@@ -272,4 +277,8 @@ export function parseTse(content: string, options: ParseOptions): Chord[][] {
   }
 
   return chords
+}
+
+export function parseTseFile(fileName: string, options: ParseOptions): Chord[][] {
+  return parseTse(readFileSync(fileName, "utf-8"), options)
 }

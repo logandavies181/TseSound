@@ -4,9 +4,15 @@ const DIGIT_PATTERN = /^[0-9]$/
 
 export type NoteName = {
   letter: string
-  accidental: "" | "s" | "S" | "b" | "B"
+  accidental: AccidentalChar
   octave: number
 }
+
+export function printNoteName(nn: NoteName): string {
+  return `${nn.letter}${nn.accidental}${nn.octave}`
+}
+
+export type AccidentalChar =  "" | "s" | "S" | "b" | "B"
 
 export function parseNoteName(name: string): NoteName | null {
   if (name.length < 2 || name.length > 3) {
@@ -18,7 +24,7 @@ export function parseNoteName(name: string): NoteName | null {
     return null
   }
 
-  let accidental: "" | "s" | "S" | "b" | "B" = ""
+  let accidental: AccidentalChar = ""
   let octaveCharIndex = 1
 
   if (name.length === 3) {
@@ -26,7 +32,7 @@ export function parseNoteName(name: string): NoteName | null {
     if (!SHARP_FLAT_PATTERN.test(accidentalChar)) {
       return null
     }
-    accidental = accidentalChar as "" | "s" | "S" | "b" | "B"
+    accidental = accidentalChar as AccidentalChar
     octaveCharIndex = 2
   }
 
@@ -82,6 +88,6 @@ export function noteNameToSemitones(note: NoteName): number {
   return note.octave * 12 + letterSemitone + accidentalSemitone
 }
 
-export function semitonesBetween(a: NoteName, b: NoteName): number {
+export function semitoneDifference(a: NoteName, b: NoteName): number {
   return noteNameToSemitones(b) - noteNameToSemitones(a)
 }

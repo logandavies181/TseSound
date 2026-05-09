@@ -36,7 +36,7 @@ export enum InstrumentType {
 class MetaInstrument {
   private voices: Voice[] = [{
     detune: 1,
-    pan: 0.5
+    pan: 0.5,
   }]
   private filters: Filter[] = []
   private envelopes: Envelope[] = []
@@ -88,7 +88,10 @@ class MetaInstrument {
   }
 
   addRaw(code: string, location?: RawSectionLocation): MetaInstrument {
-    this.rawSections.push({ code, location: location ?? RawSectionLocation.start })
+    this.rawSections.push({
+      code,
+      location: location ?? RawSectionLocation.start,
+    })
     return this
   }
 
@@ -107,7 +110,9 @@ class MetaInstrument {
     const outputParts: string[] = []
     for (const synth of this.synths) {
       sb += `      a${count} ${synth.opcode}\n`
-      outputParts.push(`a${count} * ${synth.weight ?? 1.0 / this.synths.length}`)
+      outputParts.push(
+        `a${count} * ${synth.weight ?? 1.0 / this.synths.length}`,
+      )
       count++
     }
     sb += `      aMix = (${outputParts.join(" + ")}) * kEnv\n`
@@ -149,7 +154,10 @@ class MetaInstrument {
       iDur = p3
       iAmp = p5
 
-      ${this.rawSections.filter(rs => rs.location == RawSectionLocation.start).map(rs => rs.code).join("\n      ")}
+      ${
+      this.rawSections.filter((rs) => rs.location == RawSectionLocation.start)
+        .map((rs) => rs.code).join("\n      ")
+    }
 
       ${this.renderEnvelopes()}
 
@@ -185,7 +193,10 @@ class MetaInstrument {
     `
   }
 
-  render(startIdx: number, reverbIdx?: number): { instruments: Instrument[], reverb?: Instrument } {
+  render(
+    startIdx: number,
+    reverbIdx?: number,
+  ): { instruments: Instrument[]; reverb?: Instrument } {
     const instruments: Instrument[] = []
     let reverb: Instrument | undefined = undefined
 
@@ -199,7 +210,7 @@ class MetaInstrument {
 
     ga${reverbIdx}L  = 0
     ga${reverbIdx}R  = 0
-  `
+  `,
       }
     }
 
@@ -215,7 +226,7 @@ class MetaInstrument {
           this.hasReverb = false
           idx++
         }
-        break;
+        break
       }
       case InstrumentType.percussion: {
         let idx = startIdx
@@ -245,7 +256,9 @@ export class Builder {
   private instrumentInfo: Map<string, InstrumentInfo> = new Map()
 
   private addInstrument(name: string, config: () => MetaInstrument): Builder {
-    if (this.instrumentInfo.has(name)) throw `Instrument with name ${name} already added.`
+    if (this.instrumentInfo.has(name)) {
+      throw `Instrument with name ${name} already added.`
+    }
     const inst = config()
     const nextIdx = this.nextIdx
     this.nextIdx += inst.numVoices()
@@ -253,7 +266,7 @@ export class Builder {
     if (inst.hasReverb) {
       reverbIdx = this.nextIdx
       this.reverbTracks.push(reverbIdx)
-      this.nextIdx++;
+      this.nextIdx++
     }
     this.instrumentInfo.set(name, {
       startIdx: nextIdx,
@@ -264,7 +277,11 @@ export class Builder {
     return this
   }
 
-  addSynth(name: string, synths: Synth[], configurator: (mi: MetaInstrument) => void): Builder {
+  addSynth(
+    name: string,
+    synths: Synth[],
+    configurator: (mi: MetaInstrument) => void,
+  ): Builder {
     const config = () => {
       const inst = MetaInstrument.newSynth(name)
       inst.synths.push(...synths)
@@ -275,7 +292,11 @@ export class Builder {
     return this
   }
 
-  addPercussion(name: string, filename: string, configurator?: (mi: MetaInstrument) => void): Builder {
+  addPercussion(
+    name: string,
+    filename: string,
+    configurator?: (mi: MetaInstrument) => void,
+  ): Builder {
     const config = () => {
       const inst = MetaInstrument.newPercussion(name).withWav(filename)
       if (configurator) configurator(inst)
@@ -285,13 +306,19 @@ export class Builder {
     return this
   }
 
-  private renderInstruments(): { instruments: Instrument[], reverbInstruments: Instrument[] } {
+  private renderInstruments(): {
+    instruments: Instrument[]
+    reverbInstruments: Instrument[]
+  } {
     const allInstruments: Instrument[] = []
     const reverbInstruments: Instrument[] = []
 
     for (const inst of this.instruments) {
       const info = this.getInstrumentInfo(inst.name)
-      const { instruments, reverb } = inst.render(info.startIdx, info.reverbIdx)
+      const { instruments, reverb } = inst.render(
+        info.startIdx,
+        info.reverbIdx,
+      )
       allInstruments.push(...instruments)
       if (reverb) reverbInstruments.push(reverb)
     }
@@ -321,11 +348,16 @@ export class Builder {
     }
   }
 
-  private _isChordListList(val: Chord[]|Chord[][]): val is Chord[][] {
+  private _isChordListList(val: Chord[] | Chord[][]): val is Chord[][] {
     return Array.isArray(val[0])
   }
 
-  pushChords(bar: number, instrumentName: string, chords: Chord[]|Chord[][], amplitude?: number): void {
+  pushChords(
+    bar: number,
+    instrumentName: string,
+    chords: Chord[] | Chord[][],
+    amplitude?: number,
+  ): void {
     if (this._isChordListList(chords)) {
       for (const c of chords) {
         this.pushChords(bar, instrumentName, c, amplitude)
@@ -340,8 +372,14 @@ export class Builder {
       for (let i = 0; i < chord.pitches.length; i++) {
         const pitch = chord.pitches[i]
         const duration = chord.duration
-        for (let voiceIdx = startIdx; voiceIdx < startIdx + numVoices; voiceIdx++) {
-          this.bars[currBar].contents.push(new ScoreLine(voiceIdx, { pitch, duration }, offset, amplitude))
+        for (
+          let voiceIdx = startIdx;
+          voiceIdx < startIdx + numVoices;
+          voiceIdx++
+        ) {
+          this.bars[currBar].contents.push(
+            new ScoreLine(voiceIdx, { pitch, duration }, offset, amplitude),
+          )
         }
       }
       offset += chord.duration.noteLength
@@ -354,7 +392,13 @@ export class Builder {
     }
   }
 
-  pushChordsMany(repeats: number, bar: number, instrumentName: string, chords: Chord[]|Chord[][], amplitude?: number): void {
+  pushChordsMany(
+    repeats: number,
+    bar: number,
+    instrumentName: string,
+    chords: Chord[] | Chord[][],
+    amplitude?: number,
+  ): void {
     if (this._isChordListList(chords)) {
       for (const c of chords) {
         this.pushChordsMany(repeats, bar, instrumentName, c, amplitude)
@@ -395,11 +439,13 @@ ksmps  = 128
 0dbfs  = 1
 nchnls = 2
 
-${allInstruments.map(instrument => `
+${
+      allInstruments.map((instrument) => `
 instr ${instrument.idx}
   ${instrument.code}
 endin
-`).join("\n")}
+`).join("\n")
+    }
 </CsInstruments>
 <CsScore>
 

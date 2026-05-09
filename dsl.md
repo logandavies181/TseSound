@@ -63,12 +63,8 @@ The note names are specified without a fundamental frequency (i.e. A=440) as the
 
 This section expresses the performance of notes. Characters have the following meanings:
 
-`|` separates bars; as well as the Gutter Section from the Performance Section.
-`-` is the absence of a note.
-`1` is the start of a note.
-`0` is the continued ringing of a note.
-`(` starts a sub-bar.
-`)` ends a sub-bar.
+`|` separates bars; as well as the Gutter Section from the Performance Section. `-` is the absence of a note. `1` is the
+start of a note. `0` is the continued ringing of a note. `(` starts a sub-bar. `)` ends a sub-bar.
 
 ## Sub-bars
 

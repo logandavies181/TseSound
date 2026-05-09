@@ -19,7 +19,9 @@ export interface Header {
   subBars: SubBarDef[]
 }
 
-function parseHeader(lines: string[]): { header: Header; bodyLines: string[]; numHeaderLines: number } {
+function parseHeader(
+  lines: string[],
+): { header: Header; bodyLines: string[]; numHeaderLines: number } {
   let iotaCount: number | null = null
   const subBars: SubBarDef[] = []
 
@@ -81,7 +83,9 @@ function validateIndicativeNotes(
     const expectedDiff = rowIdx - prevIdx
     if (diff !== expectedDiff) {
       throw new Error(
-        `Indicative note mismatch on line ${rowIdx + startLine}: expected semitone ${expectedDiff} between ${printNoteName(prevNote)} and ${printNoteName(indicative)}, got ${diff}`,
+        `Indicative note mismatch on line ${rowIdx + startLine}: expected semitone ${expectedDiff} between ${
+          printNoteName(prevNote)
+        } and ${printNoteName(indicative)}, got ${diff}`,
       )
     }
     prevIdx = rowIdx
@@ -96,7 +100,6 @@ function patternsToChords(
   barLength: number,
   subBars: SubBarDef[],
 ): Chord[] {
-
   // FIXME: actually allow blank notenames as intended
   if (noteNameString.trim() === "") {
     noteNameString = "c9"
@@ -204,8 +207,9 @@ export function parseTse(content: string, options: ParseOptions): Chord[][] {
     const patterns = parts.slice(1)
     patterns.pop() // get rid of errant empty last item.
 
-    if (patterns.length !== barCount)
+    if (patterns.length !== barCount) {
       throw `Unexpected number of bars on row ${numHeaderLines + idx}`
+    }
 
     return {
       noteNameString,
@@ -231,15 +235,28 @@ export function parseTse(content: string, options: ParseOptions): Chord[][] {
     const row = rows[rowIdx]
     // TODO: need to get iota count for current bar. Currently isn't changeable per bar like intended.
     try {
-      chords.push(patternsToChords(row.noteNameString, row.patterns, options, header.iotaCount, header.subBars))
+      chords.push(
+        patternsToChords(
+          row.noteNameString,
+          row.patterns,
+          options,
+          header.iotaCount,
+          header.subBars,
+        ),
+      )
     } catch (e: unknown) {
-      throw new Error(`Error on line ${numHeaderLines + rowIdx}:`, { cause: e })
+      throw new Error(`Error on line ${numHeaderLines + rowIdx}:`, {
+        cause: e,
+      })
     }
   }
 
   return chords
 }
 
-export function parseTseFile(fileName: string, options: ParseOptions): Chord[][] {
+export function parseTseFile(
+  fileName: string,
+  options: ParseOptions,
+): Chord[][] {
   return parseTse(readFileSync(fileName, "utf-8"), options)
 }

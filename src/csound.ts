@@ -18,7 +18,12 @@ export type ScoreSection = string
 export type Function = string
 
 export class ScoreFile {
-  constructor(public options: OptionsSection, public instruments: InstrumentSection, public score: ScoreSection, public functions: Function[] = []) {
+  constructor(
+    public options: OptionsSection,
+    public instruments: InstrumentSection,
+    public score: ScoreSection,
+    public functions: Function[] = [],
+  ) {
   }
 
   render() {
@@ -33,15 +38,17 @@ ksmps  = ${this.instruments.mps}
 0dbfs  = ${this.instruments.dbfs}
 nchnls = ${this.instruments.numChannels}
 
-${this.instruments.instruments
-  .map(
-    (instrument) => `
+${
+        this.instruments.instruments
+          .map(
+            (instrument) => `
 instr ${instrument.idx}
   ${instrument.code}
 endin
 `,
-  )
-  .join("\n")}
+          )
+          .join("\n")
+      }
 </CsInstruments>
 <CsScore>
 ${this.functions.join("\n")}

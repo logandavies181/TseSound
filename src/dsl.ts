@@ -12,7 +12,7 @@ export function printNoteName(nn: NoteName): string {
   return `${nn.letter}${nn.accidental}${nn.octave}`
 }
 
-export type AccidentalChar =  "" | "s" | "S" | "b" | "B"
+export type AccidentalChar = "" | "s" | "S" | "b" | "B"
 
 export function parseNoteName(name: string): NoteName | null {
   if (name.length < 2 || name.length > 3) {
@@ -57,11 +57,7 @@ export function noteNameToKey(name: string): string {
   }
 
   const letter = parsed.letter.toLowerCase()
-  const accidental = parsed.accidental
-    ? parsed.accidental === "s" || parsed.accidental === "S"
-      ? "s"
-      : "b"
-    : ""
+  const accidental = parsed.accidental ? parsed.accidental === "s" || parsed.accidental === "S" ? "s" : "b" : ""
   const octave = parsed.octave
 
   return `${letter}${accidental}${octave}`

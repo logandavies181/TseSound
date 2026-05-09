@@ -9,8 +9,9 @@ export class ScoreLine {
 
   playLength(): number {
     const d = this.note.duration
-    if (d.soundRatio == 1)
+    if (d.soundRatio == 1) {
       d.soundRatio = 0.96
+    }
     return d.noteLength * d.soundRatio
   }
 }
@@ -27,17 +28,26 @@ export type Chord = {
 
 // Note
 export function n(p: Pitch, length: number, soundRatio: number = 0.8): Chord {
-  return { pitches: [p], duration: { noteLength: length, soundRatio: soundRatio } }
+  return {
+    pitches: [p],
+    duration: { noteLength: length, soundRatio: soundRatio },
+  }
 }
 
 // Legato Note
 export function l(p: Pitch, length: number, soundRatio: number = 1): Chord {
-  return { pitches: [p], duration: { noteLength: length, soundRatio: soundRatio } }
+  return {
+    pitches: [p],
+    duration: { noteLength: length, soundRatio: soundRatio },
+  }
 }
 
 // Chord
 export function c(p: Pitch[], length: number, soundRatio: number = 1): Chord {
-  return { pitches: p, duration: { noteLength: length, soundRatio: soundRatio } }
+  return {
+    pitches: p,
+    duration: { noteLength: length, soundRatio: soundRatio },
+  }
 }
 
 // Rest
@@ -47,7 +57,10 @@ export function r(length: number): Chord {
 
 // Octave
 export function o(p: Pitch, length: number, soundRatio: number = 1): Chord {
-  return { pitches: [p, Pitch.fromFrequency(p.frequency*2)], duration: { noteLength: length, soundRatio: soundRatio } }
+  return {
+    pitches: [p, Pitch.fromFrequency(p.frequency * 2)],
+    duration: { noteLength: length, soundRatio: soundRatio },
+  }
 }
 
 export type Duration = {
@@ -90,9 +103,9 @@ export class Bar {
     const noteSpeed = this.noteSpeed()
     return this.contents
       .map((itm) => {
-        return `i${itm.instrumentIdx} ${
-          itm.startOffset * noteSpeed + startTime
-        } ${itm.playLength() * noteSpeed} ${itm.note.pitch.frequency} ${itm.amplitude} ${itm.args.join(" ")}`
+        return `i${itm.instrumentIdx} ${itm.startOffset * noteSpeed + startTime} ${
+          itm.playLength() * noteSpeed
+        } ${itm.note.pitch.frequency} ${itm.amplitude} ${itm.args.join(" ")}`
       })
       .join("\n")
   }

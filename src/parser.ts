@@ -8,7 +8,9 @@ export interface ParseOptions {
 }
 
 export interface SubBarDef {
+  // Number of iotas in sub-bar.
   length: number
+  // Corresponding number of iotas consumed in main bar.
   iotas: number
 }
 
@@ -92,6 +94,7 @@ function patternsToChords(
   patterns: string[],
   options: ParseOptions,
   barLength: number,
+  subBars: SubBarDef[],
 ): Chord[] {
 
   // FIXME: actually allow blank notenames as intended
@@ -118,6 +121,10 @@ function patternsToChords(
     }
   }
 
+  let subBarIdx = -1
+  let inSubBar = false
+  let lenRatio = 1
+  let subBarStart = 0
   let currLen = 0
   let ringing = false
   const combinedPattern = patterns.join("")
@@ -125,32 +132,60 @@ function patternsToChords(
   for (let i = 0; i < combinedPattern.length; i++) {
     const char = combinedPattern[i]
     switch (char) {
-    case "-":
-      if (ringing) {
-        push(ret, currLen, false)
-        currLen = 1
-        ringing = false
-      } else {
-        currLen++
+      case "(": {
+        if (inSubBar) {
+          throw "Cannot enter nested sub-bar"
+        }
+        inSubBar = true
+        subBarStart = i
+        subBarIdx++
+        const subBar = subBars[subBarIdx]
+        lenRatio = subBar.iotas / subBar.length
+        break
       }
-      break
-    case "1":
-      push(ret, currLen, !ringing)
-      currLen = 1
-      ringing = true
-      break
-    case "0":
-      if (ringing) {
-        currLen++
-      } else {
-        throw new Error("Unexpected sustain of not ringing note")
+      case ")": {
+        if (!inSubBar) {
+          throw "Unexpected end of sub-bar"
+        }
+
+        const subBarDef = subBars[subBarIdx]
+        const sblen = i - subBarStart - 1
+        const expectedSbLen = subBarDef.length
+        if (expectedSbLen !== sblen) {
+          throw `Unexpected sub-bar length. Expected ${expectedSbLen}, got ${sblen}`
+        }
+
+        lenRatio = 1
+        inSubBar = false
+        break
       }
-      break
-    case "(":
-    case ")":
-      break
-    default:
-      throw new Error(`Unexpected char: ${char}`)
+      case "-": {
+        if (ringing) {
+          push(ret, currLen, false)
+          currLen = lenRatio
+          ringing = false
+        } else {
+          currLen += lenRatio
+        }
+        break
+      }
+      case "1": {
+        push(ret, currLen, !ringing)
+        currLen = lenRatio
+        ringing = true
+        break
+      }
+      case "0": {
+        if (ringing) {
+          currLen += lenRatio
+        } else {
+          throw new Error("Unexpected sustain of not ringing note")
+        }
+        break
+      }
+      default: {
+        throw new Error(`Unexpected char: ${char}`)
+      }
     }
   }
   push(ret, currLen, !ringing)
@@ -194,8 +229,12 @@ export function parseTse(content: string, options: ParseOptions): Chord[][] {
 
   for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
     const row = rows[rowIdx]
-      // TODO: need to get iota count for current bar. Currently isn't changeable per bar like intended.
-    chords.push(patternsToChords(row.noteNameString, row.patterns, options, header.iotaCount))
+    // TODO: need to get iota count for current bar. Currently isn't changeable per bar like intended.
+    try {
+      chords.push(patternsToChords(row.noteNameString, row.patterns, options, header.iotaCount, header.subBars))
+    } catch (e: unknown) {
+      throw new Error(`Error on line ${numHeaderLines + rowIdx}:`, { cause: e })
+    }
   }
 
   return chords

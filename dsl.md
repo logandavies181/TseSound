@@ -73,7 +73,10 @@ This section expresses the performance of notes. Characters have the following m
 ## Sub-bars
 
 Sub-bars are used to express tuplet note lengths. The sub-bar's length and the number of iotas it consumes are declared
-in the Tuplet Line in the Header Section by a sub-bar-expression in the same row as the `(` character.
+in the Tuplet Line in the Header Section by a sub-bar-expression.
+
+Sub-bar-expressions should be in the same row as the corresponding `(`, but this is not enforced, and expressions are
+used in the same order they are defined.
 
 Sub-bar-expressions have the following format:
 

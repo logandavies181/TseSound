@@ -62,40 +62,9 @@ function parseHeader(lines: string[]): { header: Header; bodyLines: string[]; nu
     throw new Error("Iota count not declared")
   }
 
+  bodyLines.pop()
+
   return { header: { iotaCount, subBars }, bodyLines, numHeaderLines }
-}
-
-function countIotas(pattern: string, subBars: SubBarDef[]): number {
-  let count = 0
-  let subBarDepth = 0
-  let subBarStart = 0
-  let subBarLen = 0
-  let subBarIdx = 0
-
-  for (let i = 0; i < pattern.length; i++) {
-    const char = pattern[i]
-    if (char === "(") {
-      if (subBarDepth === 0) {
-        subBarStart = i
-        subBarLen = 0
-      }
-      subBarDepth++
-    } else if (char === ")") {
-      subBarDepth--
-      if (subBarDepth === 0) {
-        const subBarDef = subBars[subBarIdx++]
-        if (subBarDef) {
-          count += Math.round((subBarLen / subBarDef.length) * subBarDef.iotas)
-        }
-      }
-    } else if (subBarDepth === 0) {
-      count++
-    } else {
-      subBarLen++
-    }
-  }
-
-  return count
 }
 
 function validateIndicativeNotes(
@@ -118,33 +87,24 @@ function validateIndicativeNotes(
   }
 }
 
-function parseRow(row: string, barLength: number, subBars: SubBarDef[]): { noteName: string; patterns: string[] } {
-  const parts = row.split("|")
-  const noteName = parts[0].trim()
-  const patterns = parts.slice(1)
-  patterns.pop()
-
-  for (const pattern of patterns) {
-    const patternIotas = countIotas(pattern, subBars)
-    if (patternIotas != barLength) {
-      throw new Error(`Bar length mismatch: expected ${barLength}, got ${patternIotas} from pattern "${pattern}"`)
-    }
-  }
-
-  return { noteName, patterns }
-}
-
 function patternsToChords(
-  noteName: string,
+  noteNameString: string,
   patterns: string[],
   options: ParseOptions,
   barLength: number,
-  subBars: SubBarDef[],
 ): Chord[] {
-  const key = noteNameToKey(noteName)
+
+  // FIXME: actually allow blank notenames as intended
+  if (noteNameString.trim() === "") {
+    noteNameString = "c9"
+  }
+
+  // TODO: this forces A=440Hz
+  // We're also parsing the noteName a second time where we could avoid it.
+  const key = noteNameToKey(noteNameString)
   const pitch = (notes as Record<string, { frequency: number }>)[key]
   if (!pitch) {
-    throw new Error(`Unknown note: ${noteName}`)
+    throw new Error(`Unknown note: ${noteNameString}`)
   }
 
   const ret: Chord[] = []
@@ -158,9 +118,6 @@ function patternsToChords(
     }
   }
 
-  let subBarDepth = 0
-  let subBarStart = 0
-  let subBarLen = 0
   let currLen = 0
   let ringing = false
   const combinedPattern = patterns.join("")
@@ -168,27 +125,7 @@ function patternsToChords(
   for (let i = 0; i < combinedPattern.length; i++) {
     const char = combinedPattern[i]
     switch (char) {
-    case "(":
-      subBarDepth++
-      if (subBarDepth === 1) {
-        subBarStart = i
-        subBarLen = 0
-      }
-      break
-    case ")":
-      if (subBarDepth === 1) {
-        const subBarDef = subBars.shift()
-        if (subBarDef) {
-          currLen += Math.round((subBarLen / subBarDef.length) * subBarDef.iotas)
-        }
-      }
-      subBarDepth--
-      break
     case "-":
-      if (subBarDepth > 0) {
-        subBarLen++
-        break
-      }
       if (ringing) {
         push(ret, currLen, false)
         currLen = 1
@@ -198,24 +135,19 @@ function patternsToChords(
       }
       break
     case "1":
-      if (subBarDepth > 0) {
-        subBarLen++
-        break
-      }
       push(ret, currLen, !ringing)
       currLen = 1
       ringing = true
       break
     case "0":
-      if (subBarDepth > 0) {
-        subBarLen++
-        break
-      }
       if (ringing) {
         currLen++
       } else {
         throw new Error("Unexpected sustain of not ringing note")
       }
+      break
+    case "(":
+    case ")":
       break
     default:
       throw new Error(`Unexpected char: ${char}`)
@@ -231,14 +163,27 @@ export function parseTse(content: string, options: ParseOptions): Chord[][] {
   const { header, bodyLines, numHeaderLines } = parseHeader(lines)
 
   const barCount = bodyLines[0].split("|").length - 2
-  const rows = bodyLines.map((line) => parseRow(line, header.iotaCount, [...header.subBars]))
+  const rows = bodyLines.map((line, idx) => {
+    const parts = line.split("|")
+    const noteNameString = parts[0].trim()
+    const patterns = parts.slice(1)
+    patterns.pop() // get rid of errant empty last item.
 
-  const definitiveNote = parseNoteName(rows[0].noteName)
+    if (patterns.length !== barCount)
+      throw `Unexpected number of bars on row ${numHeaderLines + idx}`
+
+    return {
+      noteNameString,
+      patterns,
+    }
+  })
+
+  const definitiveNote = parseNoteName(rows[0].noteNameString)
   if (definitiveNote == null) throw "Definitive Note Name not set"
 
   const indicativeNotes: { note: NoteName; rowIdx: number }[] = []
   for (let i = 1; i < rows.length; i++) {
-    const parsed = parseNoteName(rows[i].noteName)
+    const parsed = parseNoteName(rows[i].noteNameString)
     if (parsed) {
       indicativeNotes.push({ note: parsed, rowIdx: i })
     }
@@ -247,33 +192,10 @@ export function parseTse(content: string, options: ParseOptions): Chord[][] {
 
   const chords: Chord[][] = []
 
-  for (let barIdx = 0; barIdx < barCount; barIdx++) {
-    const barChords: Chord[] = []
-
-    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
-      const row = rows[rowIdx]
-      const pattern = row.patterns[barIdx]
-      if (!pattern || pattern.length === 0) {
-        barChords.push(r(options.timeSignature))
-        continue
-      }
-
-      let noteName: string
-      if (rowIdx === 0) {
-        noteName = rows[0].noteName
-      } else if (row.noteName) {
-        noteName = row.noteName
-      } else {
-        barChords.push(r(options.timeSignature))
-        continue
-      }
-
-      const allPatterns = rows[rowIdx].patterns
-      const rowChords = patternsToChords(noteName, allPatterns, options, header.iotaCount, [...header.subBars])
-      barChords.push(rowChords[0])
-    }
-
-    chords.push(barChords)
+  for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+    const row = rows[rowIdx]
+      // TODO: need to get iota count for current bar. Currently isn't changeable per bar like intended.
+    chords.push(patternsToChords(row.noteNameString, row.patterns, options, header.iotaCount))
   }
 
   return chords

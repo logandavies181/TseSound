@@ -12,6 +12,9 @@ export interface SubBarDef {
   length: number
   // Corresponding number of iotas consumed in main bar.
   iotas: number
+
+  // TODO: properly parse header
+  // pos: number
 }
 
 export interface Header {
@@ -124,74 +127,88 @@ function patternsToChords(
     }
   }
 
+  let consumedIotas = 0
   let subBarIdx = -1
   let inSubBar = false
   let lenRatio = 1
   let subBarStart = 0
   let currLen = 0
   let ringing = false
-  const combinedPattern = patterns.join("")
 
-  for (let i = 0; i < combinedPattern.length; i++) {
-    const char = combinedPattern[i]
-    switch (char) {
-      case "(": {
-        if (inSubBar) {
-          throw "Cannot enter nested sub-bar"
+  for (const pattern of patterns) {
+    for (let i = 0; i < pattern.length; i++) {
+      const char = pattern[i]
+      switch (char) {
+        case "(": {
+          if (inSubBar) {
+            throw "Cannot enter nested sub-bar"
+          }
+          inSubBar = true
+          subBarStart = i
+          subBarIdx++
+          const subBar = subBars[subBarIdx]
+          lenRatio = subBar.iotas / subBar.length
+          break
         }
-        inSubBar = true
-        subBarStart = i
-        subBarIdx++
-        const subBar = subBars[subBarIdx]
-        lenRatio = subBar.iotas / subBar.length
-        break
-      }
-      case ")": {
-        if (!inSubBar) {
-          throw "Unexpected end of sub-bar"
-        }
+        case ")": {
+          if (!inSubBar) {
+            throw "Unexpected end of sub-bar"
+          }
 
-        const subBarDef = subBars[subBarIdx]
-        const sblen = i - subBarStart - 1
-        const expectedSbLen = subBarDef.length
-        if (expectedSbLen !== sblen) {
-          throw `Unexpected sub-bar length. Expected ${expectedSbLen}, got ${sblen}`
-        }
+          const subBarDef = subBars[subBarIdx]
+          const sblen = i - subBarStart - 1
+          const expectedSbLen = subBarDef.length
+          if (expectedSbLen !== sblen) {
+            throw `Unexpected sub-bar length. Expected ${expectedSbLen}, got ${sblen}`
+          }
 
-        lenRatio = 1
-        inSubBar = false
-        break
-      }
-      case "-": {
-        if (ringing) {
-          push(ret, currLen, false)
+          lenRatio = 1
+          inSubBar = false
+          break
+        }
+        case "-": {
+          if (ringing) {
+            push(ret, currLen, false)
+            currLen = lenRatio
+            consumedIotas += lenRatio
+            ringing = false
+          } else {
+            currLen += lenRatio
+            consumedIotas += lenRatio
+          }
+          break
+        }
+        case "1": {
+          push(ret, currLen, !ringing)
           currLen = lenRatio
-          ringing = false
-        } else {
-          currLen += lenRatio
+          consumedIotas += lenRatio
+          ringing = true
+          break
         }
-        break
-      }
-      case "1": {
-        push(ret, currLen, !ringing)
-        currLen = lenRatio
-        ringing = true
-        break
-      }
-      case "0": {
-        if (ringing) {
-          currLen += lenRatio
-        } else {
-          throw new Error("Unexpected sustain of not ringing note")
+        case "0": {
+          if (ringing) {
+            currLen += lenRatio
+            consumedIotas += lenRatio
+          } else {
+            throw new Error("Unexpected sustain of not ringing note")
+          }
+          break
         }
-        break
-      }
-      default: {
-        throw new Error(`Unexpected char: ${char}`)
+        default: {
+          throw new Error(`Unexpected char: ${char}`)
+        }
       }
     }
+
+    // TODO: update expected bar length
+    // FIXME? surely this always rounds as expected.. but maaybe not.
+    if (Math.round(consumedIotas) !== barLength) {
+      throw `Unexpected bar length. Expected: ${barLength}, got: ${consumedIotas}`
+    }
+    consumedIotas = 0
   }
   push(ret, currLen, !ringing)
+
 
   return ret
 }

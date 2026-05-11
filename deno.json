@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts"
+    "dev": "deno run --watch main.ts",
+    "ui": "scripts/ui.sh"
   },
   "fmt": {
     "lineWidth": 120,
@@ -8,6 +9,9 @@
   },
   "imports": {
     "@cliffy/command": "jsr:@cliffy/command@^1.1.0",
-    "@std/assert": "jsr:@std/assert@1"
+    "@std/assert": "jsr:@std/assert@1",
+    "@webui/deno-webui": "jsr:@webui/deno-webui@^2.5.15",
+    "htm": "npm:htm@^3.1.1",
+    "preact": "npm:preact@^10.29.1"
   }
 }

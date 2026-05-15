@@ -1,3 +1,6 @@
 *.csd
 *.exe
 dist
+
+ui/app.js
+ui/output.css

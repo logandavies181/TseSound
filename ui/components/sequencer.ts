@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks"
 
 import { html } from "../html.ts"
+import { colours } from "../colours.ts"
 
 export function Sequencer() {
   const patterns = [
@@ -80,7 +81,7 @@ export function charToPipState(c: string): PipState {
 }
 
 export function pipStateToColour(p: PipState): string {
-  return ["#f0f9ff", "#fee685", "#ecfcca"][p]
+  return [colours.slate[100], colours.amber[300], colours.green[300]][p]
 }
 
 export type PipProps = {

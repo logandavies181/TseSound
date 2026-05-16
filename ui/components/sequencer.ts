@@ -1,22 +1,37 @@
-import { useState } from "preact/hooks"
+import { useEffect, useState } from "preact/hooks"
 
 import { html } from "../html.ts"
 import { colours } from "../colours.ts"
+import { ParsedRow } from "../../src/parser.ts"
+
+export function waitForBoundFns(cb: () => void) {
+  const intervalId = setInterval(() => {
+    //@ts-ignore: actually it might not be defined, which is the point.
+    if (typeof callParseTseFile !== "undefined") {
+      clearInterval(intervalId)
+      cb()
+    }
+    console.log("waiting")
+  }, 100)
+}
 
 export function Sequencer() {
-  const patterns = [
-    "--------------------1000--------",
-    "--------------------1000--------",
-    "--------------------1000--------",
-  ]
+  const [rows, setRows] = useState<ParsedRow[]>([])
+
+  useEffect(() => {
+    waitForBoundFns(async () => {
+      const res = await callParseTseFile()
+      console.log(res)
+      const tse = await JSON.parse(res)
+      setRows(tse)
+    })
+  }, [])
 
   return html`
     <div class="flex flex-col min-h-[50%] min-w-full overflow-y-scroll">
       <div class="flex flex-col overflow-x-scroll min-w-full bg-green-800">
         <div class="flex flex-col min-w-full">
-          <${SeqRow} patterns="${patterns}" />
-          <${SeqRow} patterns="${patterns}" />
-          <${SeqRow} patterns="${patterns}" />
+          ${rows.map((row) => html`<${SeqRow} patterns="${row.patterns}" />`)}
         </div>
       </div>
     </div>

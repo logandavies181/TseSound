@@ -3,11 +3,11 @@ import { NoteName, noteNameToKey, parseNoteName, printNoteName, semitoneDifferen
 import { notes } from "./notes.ts"
 import { readFileSync } from "node:fs"
 
-export interface ParseOptions {
+export type ParseOptions = {
   timeSignature: number
 }
 
-export interface SubBarDef {
+export type SubBarDef = {
   // Number of iotas in sub-bar.
   length: number
   // Corresponding number of iotas consumed in main bar.
@@ -17,9 +17,15 @@ export interface SubBarDef {
   // pos: number
 }
 
-export interface Header {
+export type Header = {
   iotaCount: number
   subBars: SubBarDef[]
+}
+
+export type ParsedRow = {
+  chords: Chord[]
+  noteName: string
+  patterns: string[]
 }
 
 function parseHeader(
@@ -212,7 +218,7 @@ function patternsToChords(
   return ret
 }
 
-export function parseTse(content: string, options: ParseOptions): Chord[][] {
+export function parseTse(content: string, options: ParseOptions): ParsedRow[] {
   const lines = content.split("\n")
   const { header, bodyLines, numHeaderLines } = parseHeader(lines)
 
@@ -245,21 +251,24 @@ export function parseTse(content: string, options: ParseOptions): Chord[][] {
   }
   validateIndicativeNotes(definitiveNote, indicativeNotes, numHeaderLines + 1)
 
-  const chords: Chord[][] = []
+  const parsedRows: ParsedRow[] = []
 
   for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
     const row = rows[rowIdx]
     // TODO: need to get iota count for current bar. Currently isn't changeable per bar like intended.
     try {
-      chords.push(
-        patternsToChords(
-          row.noteNameString,
-          row.patterns,
-          options,
-          header.iotaCount,
-          header.subBars,
-        ),
+      const chords = patternsToChords(
+        row.noteNameString,
+        row.patterns,
+        options,
+        header.iotaCount,
+        header.subBars,
       )
+      parsedRows.push({
+        chords,
+        patterns: row.patterns,
+        noteName: row.noteNameString,
+      })
     } catch (e: unknown) {
       throw new Error(`Error on line ${numHeaderLines + rowIdx}:`, {
         cause: e,
@@ -267,12 +276,19 @@ export function parseTse(content: string, options: ParseOptions): Chord[][] {
     }
   }
 
-  return chords
+  return parsedRows
 }
 
 export function parseTseFile(
   fileName: string,
   options: ParseOptions,
-): Chord[][] {
+): ParsedRow[] {
   return parseTse(readFileSync(fileName, "utf-8"), options)
+}
+
+export function chordsFromTseFile(
+  fileName: string,
+  options: ParseOptions,
+): Chord[][] {
+  return parseTse(readFileSync(fileName, "utf-8"), options).map(row => row.chords)
 }

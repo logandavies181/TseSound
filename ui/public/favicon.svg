@@ -1,18 +1,19 @@
 <svg width="200" height="250" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg">
   <!-- Background -->
-  <rect x="0" y="40" width="200" height="220" rx="10" fill="#ffb3b2" stroke="#333" stroke-width="8"/>
+  <rect x="0" y="40" width="200" height="220" rx="10" fill="#ffb3b2" stroke="#333" stroke-width="8" />
 
   <!-- Staff lines -->
   <g stroke="#333" stroke-width="4">
-    <line x1="20" y1="90" x2="180" y2="90"/>
-    <line x1="20" y1="120" x2="180" y2="120"/>
-    <line x1="20" y1="150" x2="180" y2="150"/>
-    <line x1="20" y1="180" x2="180" y2="180"/>
-    <line x1="20" y1="210" x2="180" y2="210"/>
+    <line x1="20" y1="90" x2="180" y2="90" />
+    <line x1="20" y1="120" x2="180" y2="120" />
+    <line x1="20" y1="150" x2="180" y2="150" />
+    <line x1="20" y1="180" x2="180" y2="180" />
+    <line x1="20" y1="210" x2="180" y2="210" />
   </g>
 
   <!-- C clef symbol (original path) -->
-  <path d="
+  <path
+    d="
     M 90 60
     L 90 240
 
@@ -24,20 +25,20 @@
     M 110 120
     L 110 180
   "
-  stroke="#333"
-  fill="none"
-  stroke-width="12"
-  stroke-linecap="round"
-  stroke-linejoin="round"/>
+    stroke="#333"
+    fill="none"
+    stroke-width="12"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
 
   <!-- check box -->
-  <rect x="20" y="70" width="40" height="40" rx="10" fill="#dab2ff" stroke="#333" stroke-width="8"/>
-  <rect x="20" y="130" width="40" height="40" rx="10" fill="#dab2ff" stroke="#333" stroke-width="8"/>
-  <rect x="20" y="190" width="40" height="40" rx="10" fill="#dab2ff" stroke="#333" stroke-width="8"/>
+  <rect x="20" y="70" width="40" height="40" rx="10" fill="#dab2ff" stroke="#333" stroke-width="8" />
+  <rect x="20" y="130" width="40" height="40" rx="10" fill="#dab2ff" stroke="#333" stroke-width="8" />
+  <rect x="20" y="190" width="40" height="40" rx="10" fill="#dab2ff" stroke="#333" stroke-width="8" />
   <!--
   <path d="M 20 60 m 10 20 l 10 12 l 18 -22" stroke="#ffb3b2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   <path d="M 20 120 m 10 20 l 10 12 l 18 -22" stroke="#ffb3b2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   <path d="M 20 180 m 10 20 l 10 12 l 18 -22" stroke="#ffb3b2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   -->
-
 </svg>

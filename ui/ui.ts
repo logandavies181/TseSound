@@ -5,7 +5,7 @@ import css from "./output.css" with { type: "text" }
 import favicon from "./public/favicon.svg" with { type: "text" }
 import index from "./index.html" with { type: "text" }
 
-const myWindow = new WebUI();
+const myWindow = new WebUI()
 
 myWindow.setFileHandler((url: URL) => {
   let resp = ""
@@ -35,10 +35,10 @@ myWindow.bind("./index.html", () => index)
 myWindow.bind("./output.css", () => css)
 
 if (Deno.osRelease().match("WSL")) {
-  await myWindow.show(index);
+  await myWindow.show(index)
 } else {
   myWindow.setSize(1600, 900)
   myWindow.showWebView(index)
 }
 
-await WebUI.wait();
+await WebUI.wait()

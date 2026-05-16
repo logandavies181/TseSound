@@ -16,4 +16,9 @@ function App() {
 }
 
 document.body.innerHTML = ""
-render(html`<${App} />`, document.body)
+render(
+  html`
+    <${App} />
+  `,
+  document.body,
+)

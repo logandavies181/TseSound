@@ -209,7 +209,6 @@ function patternsToChords(
   }
   push(ret, currLen, !ringing)
 
-
   return ret
 }
 

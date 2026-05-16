@@ -14,9 +14,9 @@ export function Sequencer() {
     <div class="flex flex-col min-h-[50%] min-w-full overflow-y-scroll">
       <div class="flex flex-col overflow-x-scroll min-w-full bg-green-800">
         <div class="flex flex-col min-w-full">
-          <${SeqRow} patterns=${patterns} />
-          <${SeqRow} patterns=${patterns} />
-          <${SeqRow} patterns=${patterns} />
+          <${SeqRow} patterns="${patterns}" />
+          <${SeqRow} patterns="${patterns}" />
+          <${SeqRow} patterns="${patterns}" />
         </div>
       </div>
     </div>
@@ -28,14 +28,16 @@ export type SeqRowProps = {
 }
 
 export function SeqRow(props: SeqRowProps) {
-  const pipPatterns = props.patterns.map(pattern => {
-    return pattern.split("").map(char => {
-      return html`<${Pip} state=${charToPipState(char)} />`
+  const pipPatterns = props.patterns.map((pattern) => {
+    return pattern.split("").map((char) => {
+      return html`
+        <${Pip} state="${charToPipState(char)}" />
+      `
     })
   })
 
   const seqRowItems = [newBarDivider()]
-  pipPatterns.forEach(pips => {
+  pipPatterns.forEach((pips) => {
     seqRowItems.push(...pips)
     seqRowItems.push(newBarDivider())
   })
@@ -56,7 +58,9 @@ export enum PipState {
 }
 
 function newBarDivider() {
-  return html`<${Pip} state=${PipState.barDivider} />`
+  return html`
+    <${Pip} state="${PipState.barDivider}" />
+  `
 }
 
 export function charToPipState(c: string): PipState {
@@ -103,7 +107,7 @@ export function Pip(props: PipProps) {
           />
         </svg>
       </div>
-  `
+    `
   }
 
   const onClick = () => {
@@ -114,7 +118,7 @@ export function Pip(props: PipProps) {
     <div class="flex grow min-w-3 max-w-[8%]">
       <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
         <rect
-          onClick=${onClick}
+          onClick="${onClick}"
           x="5"
           y="5"
           width="90"

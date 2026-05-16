@@ -28,7 +28,6 @@ myWindow.setFileHandler((url: URL) => {
       break
   }
 
-  // HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello
   const httpResp = `HTTP/1.1 200 OK\r\n${contentType}Content-Length: ${resp.length}\r\n\r\n${resp}`
   return Promise.resolve(httpResp)
 })
@@ -38,6 +37,7 @@ myWindow.bind("./output.css", () => css)
 if (Deno.osRelease().match("WSL")) {
   await myWindow.show(index);
 } else {
+  myWindow.setSize(1600, 900)
   myWindow.showWebView(index)
 }
 

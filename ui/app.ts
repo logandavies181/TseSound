@@ -16,6 +16,7 @@ function App() {
 }
 
 document.body.innerHTML = ""
+document.addEventListener("contextmenu", (e) => e.stopPropagation(), true)
 render(
   html`
     <${App} />

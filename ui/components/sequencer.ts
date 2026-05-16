@@ -21,17 +21,20 @@ export function Sequencer() {
   useEffect(() => {
     waitForBoundFns(async () => {
       const res = await callParseTseFile()
-      console.log(res)
       const tse = await JSON.parse(res)
       setRows(tse)
     })
   }, [])
 
   return html`
-    <div class="flex flex-col min-h-[50%] min-w-full overflow-y-scroll">
+    <div class="flex flex-col min-h-[50%] min-w-full overflow-x-clip overflow-y-clip">
       <div class="flex flex-col overflow-x-scroll min-w-full bg-green-800">
         <div class="flex flex-col min-w-full">
-          ${rows.map((row) => html`<${SeqRow} patterns="${row.patterns}" />`)}
+          ${rows.map((row) =>
+            html`
+              <${SeqRow} patterns="${row.patterns}" />
+            `
+          )}
         </div>
       </div>
     </div>
@@ -58,7 +61,7 @@ export function SeqRow(props: SeqRowProps) {
   })
 
   return html`
-    <div class="flex flex-row justify-start h-auto max-w-screen min-w-full bg-green-500 overflow-y-hidden">
+    <div class="flex flex-row justify-start h-auto max-w-screen min-w-full bg-green-500">
       <div class="flex max-w-3 min-w-3 w-3 min-h-1 h-1"></div>
       ${seqRowItems}
     </div>
@@ -91,6 +94,11 @@ export function charToPipState(c: string): PipState {
     }
     case "|": {
       return PipState.barDivider
+    }
+    case ")":
+    case "(": {
+      console.log("todo ()")
+      return PipState.off
     }
     default: {
       console.warn(`warn: unknown pipState: ${c}`)
@@ -130,10 +138,9 @@ export function Pip(props: PipProps) {
   }
 
   return html`
-    <div class="flex grow min-w-3 max-w-[8%]">
+    <div class="flex grow min-w-3 max-w-[8%]" onClick="${onClick}">
       <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
         <rect
-          onClick="${onClick}"
           x="5"
           y="5"
           width="90"

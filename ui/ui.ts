@@ -39,10 +39,10 @@ myWindow.setFileHandler((url: URL) => {
 })
 
 myWindow.bind("callParseTseFile", () => {
-   return JSON.stringify(parseTseFile(Deno.args[0], { timeSignature: 4 }))
+  return JSON.stringify(parseTseFile(Deno.args[0], { timeSignature: 4 }))
 })
 declare global {
-  function callParseTseFile(): Promise<string>;
+  function callParseTseFile(): Promise<string>
 }
 
 if (Deno.osRelease().match("WSL")) {

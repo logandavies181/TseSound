@@ -1,7 +1,7 @@
 // import { Key } from "./key.ts"
 import { Chord, n, r } from "./score.ts"
-import { NoteName, noteNameToKey, parseNoteName, printNoteName, semitoneDifference } from "./dsl.ts"
-import { notes } from "./notes.ts"
+import { NoteName, noteNameToKey, parseNoteName, printNoteName, semitoneDifference } from "../index.ts"
+import { notes } from "./generated_notes.ts"
 
 import { parse as parseYaml } from "@std/yaml"
 

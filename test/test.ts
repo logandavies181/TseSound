@@ -3,5 +3,5 @@ import { readFileSync } from "node:fs"
 
 const content = readFileSync("test/dsl.tse", "utf-8")
 
-const bars = parseTse(content, { timeSignature: 1 })
+const bars = parseTse(content)
 console.log(`Parsed ${bars.length} bars, ${bars.flat().length} chords`)

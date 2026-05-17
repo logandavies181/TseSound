@@ -2,6 +2,8 @@
 
 TseSound has a simple DSL format for specifying basic music performance.
 
+!Warning: This spec is out of date. TODO
+
 ## Extension
 
 TseSound DSL files use a .tse extension.

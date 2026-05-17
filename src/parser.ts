@@ -1,11 +1,11 @@
+// import { Key } from "./key.ts"
 import { Chord, n, r } from "./score.ts"
 import { NoteName, noteNameToKey, parseNoteName, printNoteName, semitoneDifference } from "./dsl.ts"
 import { notes } from "./notes.ts"
-import { readFileSync } from "node:fs"
 
-export type ParseOptions = {
-  timeSignature: number
-}
+import { parse as parseYaml } from "@std/yaml"
+
+import { readFileSync } from "node:fs"
 
 export type SubBarDef = {
   // Number of iotas in sub-bar.
@@ -18,8 +18,15 @@ export type SubBarDef = {
 }
 
 export type Header = {
-  iotaCount: number
+  meta: HeaderMeta
   subBars: SubBarDef[]
+}
+
+export type HeaderMeta = {
+  // key: typeof Key
+  key: string
+  iotaCount: number
+  timeSignature: number
 }
 
 export type ParsedRow = {
@@ -31,31 +38,38 @@ export type ParsedRow = {
 function parseHeader(
   lines: string[],
 ): { header: Header; bodyLines: string[]; numHeaderLines: number } {
-  let iotaCount: number | null = null
   const subBars: SubBarDef[] = []
 
   const bodyLines: string[] = []
-  let inHeader = true
+  let numHeaderLines = -1
 
-  let numHeaderLines = 0
+  let inMeta = true
+  let inHeader = true
+  let meta: HeaderMeta | undefined = undefined
   for (const line of lines) {
+    if (inHeader) {
+      numHeaderLines++
+    }
+
+    if (inMeta) {
+      if (line !== "---") {
+        continue
+      }
+
+      inMeta = false
+      meta = parseYaml(lines.slice(0, numHeaderLines).join("\n")) as HeaderMeta // TODO: validate
+      continue
+    }
+
     const gutter = line.slice(0, 3).trim()
 
     if (inHeader) {
-      numHeaderLines++
       if (gutter === "/") {
         inHeader = false
         continue
       }
 
       if (gutter === "#") {
-        continue
-      }
-
-      if (gutter === "=") {
-        const parts = line.split("|")
-        const value = parts[1].trim()
-        iotaCount = parseInt(value, 10)
         continue
       }
 
@@ -71,13 +85,15 @@ function parseHeader(
     }
   }
 
-  if (iotaCount === null) {
-    throw new Error("Iota count not declared")
+  if (bodyLines.at(-1) === "") {
+    bodyLines.pop()
   }
 
-  bodyLines.pop()
+  if (meta === undefined) {
+    throw "meta is undefined"
+  }
 
-  return { header: { iotaCount, subBars }, bodyLines, numHeaderLines }
+  return { header: { meta, subBars }, bodyLines, numHeaderLines }
 }
 
 function validateIndicativeNotes(
@@ -105,15 +121,8 @@ function validateIndicativeNotes(
 function patternsToChords(
   noteNameString: string,
   patterns: string[],
-  options: ParseOptions,
-  barLength: number,
-  subBars: SubBarDef[],
+  header: Header,
 ): Chord[] {
-  // FIXME: actually allow blank notenames as intended
-  if (noteNameString.trim() === "") {
-    noteNameString = "c9"
-  }
-
   // TODO: this forces A=440Hz
   // We're also parsing the noteName a second time where we could avoid it.
   const key = noteNameToKey(noteNameString)
@@ -125,7 +134,7 @@ function patternsToChords(
   const ret: Chord[] = []
 
   const push = (ret: Chord[], currLen: number, isRest: boolean): void => {
-    const len = (currLen / barLength) * options.timeSignature
+    const len = (currLen / header.meta.iotaCount) * header.meta.timeSignature
     if (isRest) {
       ret.push(r(len))
     } else {
@@ -152,7 +161,7 @@ function patternsToChords(
           inSubBar = true
           subBarStart = i
           subBarIdx++
-          const subBar = subBars[subBarIdx]
+          const subBar = header.subBars[subBarIdx]
           lenRatio = subBar.iotas / subBar.length
           break
         }
@@ -161,7 +170,7 @@ function patternsToChords(
             throw "Unexpected end of sub-bar"
           }
 
-          const subBarDef = subBars[subBarIdx]
+          const subBarDef = header.subBars[subBarIdx]
           const sblen = i - subBarStart - 1
           const expectedSbLen = subBarDef.length
           if (expectedSbLen !== sblen) {
@@ -208,8 +217,8 @@ function patternsToChords(
 
     // TODO: update expected bar length
     // FIXME? surely this always rounds as expected.. but maaybe not.
-    if (Math.round(consumedIotas) !== barLength) {
-      throw `Unexpected bar length. Expected: ${barLength}, got: ${consumedIotas}`
+    if (Math.round(consumedIotas) !== header.meta.iotaCount) {
+      throw `Unexpected bar length. Expected: ${header.meta.iotaCount}, got: ${consumedIotas}`
     }
     consumedIotas = 0
   }
@@ -218,7 +227,7 @@ function patternsToChords(
   return ret
 }
 
-export function parseTse(content: string, options: ParseOptions): ParsedRow[] {
+export function parseTse(content: string): ParsedRow[] {
   const lines = content.split("\n")
   const { header, bodyLines, numHeaderLines } = parseHeader(lines)
 
@@ -253,16 +262,20 @@ export function parseTse(content: string, options: ParseOptions): ParsedRow[] {
 
   const parsedRows: ParsedRow[] = []
 
+  // let prevNoteName = definitiveNote
   for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
     const row = rows[rowIdx]
     // TODO: need to get iota count for current bar. Currently isn't changeable per bar like intended.
+
+    if (row.noteNameString === "") {
+      row.noteNameString = "c9" //FIXME
+    }
+
     try {
       const chords = patternsToChords(
         row.noteNameString,
         row.patterns,
-        options,
-        header.iotaCount,
-        header.subBars,
+        header,
       )
       parsedRows.push({
         chords,
@@ -281,14 +294,12 @@ export function parseTse(content: string, options: ParseOptions): ParsedRow[] {
 
 export function parseTseFile(
   fileName: string,
-  options: ParseOptions,
 ): ParsedRow[] {
-  return parseTse(readFileSync(fileName, "utf-8"), options)
+  return parseTse(readFileSync(fileName, "utf-8"))
 }
 
 export function chordsFromTseFile(
   fileName: string,
-  options: ParseOptions,
 ): Chord[][] {
-  return parseTse(readFileSync(fileName, "utf-8"), options).map(row => row.chords)
+  return parseTse(readFileSync(fileName, "utf-8")).map(row => row.chords)
 }

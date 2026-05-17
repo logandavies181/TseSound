@@ -13,6 +13,7 @@
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/semver@^1.0.8": "1.0.8",
     "jsr:@std/text@^1.0.17": "1.0.18",
+    "jsr:@std/yaml@^1.1.0": "1.1.0",
     "jsr:@webui/deno-webui@2.5.15": "2.5.15",
     "jsr:@webui/deno-webui@^2.5.15": "2.5.15",
     "jsr:@zip-js/zip-js@^2.8.7": "2.8.26",
@@ -78,6 +79,9 @@
     "@std/text@1.0.18": {
       "integrity": "d199e516f80599813c64fd4aee5b8f26f6f7d1e1434c88fd153aeea6fea6a9b9"
     },
+    "@std/yaml@1.1.0": {
+      "integrity": "fc1c5c63e05c4c5eb6118355f557958035d41940d6c29d35b306ef7155d6edb0"
+    },
     "@webui/deno-webui@2.5.15": {
       "integrity": "1d4e16d9df0984e1fd85fb9ab9e67c9a156a42b1e56a3d36eb5b8e31b774b4bc",
       "dependencies": [
@@ -102,6 +106,7 @@
     "dependencies": [
       "jsr:@cliffy/command@^1.1.0",
       "jsr:@std/assert@1",
+      "jsr:@std/yaml@^1.1.0",
       "jsr:@webui/deno-webui@^2.5.15",
       "npm:htm@^3.1.1",
       "npm:preact@^10.29.1"

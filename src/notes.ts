@@ -28,7 +28,6 @@ export function parseNoteName(name: string): NoteName | null {
 
   const { letter, accidental } = genericNote
 
-
   const octaveChar = name.at(-1)!
   if (!DIGIT_PATTERN.test(octaveChar)) {
     return null

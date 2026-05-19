@@ -1,4 +1,3 @@
-
 import { assertEquals } from "@std/assert"
 import { NoteName, parseNoteName } from "../index.ts"
 

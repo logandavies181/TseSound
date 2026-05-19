@@ -12,7 +12,6 @@ export type SubBarDef = {
   length: number
   // Corresponding number of iotas consumed in main bar.
   iotas: number
-
   // TODO: properly parse header
   // pos: number
 }
@@ -301,5 +300,5 @@ export function parseTseFile(
 export function chordsFromTseFile(
   fileName: string,
 ): Chord[][] {
-  return parseTse(readFileSync(fileName, "utf-8")).map(row => row.chords)
+  return parseTse(readFileSync(fileName, "utf-8")).map((row) => row.chords)
 }

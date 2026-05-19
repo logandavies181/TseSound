@@ -1,3 +1,5 @@
+import { GenericNoteName } from "./key.ts"
+
 const NOTE_LETTER_PATTERN = /^[a-gA-G]$/
 const SHARP_FLAT_PATTERN = /^[sSbB]$/
 const DIGIT_PATTERN = /^[0-9]$/
@@ -19,24 +21,15 @@ export function parseNoteName(name: string): NoteName | null {
     return null
   }
 
-  const letter = name[0]
-  if (!NOTE_LETTER_PATTERN.test(letter)) {
+  const genericNote = parseGenericNoteName(name.slice(0, name.length - 1))
+  if (genericNote === null) {
     return null
   }
 
-  let accidental: AccidentalChar = ""
-  let octaveCharIndex = 1
+  const { letter, accidental } = genericNote
 
-  if (name.length === 3) {
-    const accidentalChar = name[1]
-    if (!SHARP_FLAT_PATTERN.test(accidentalChar)) {
-      return null
-    }
-    accidental = accidentalChar as AccidentalChar
-    octaveCharIndex = 2
-  }
 
-  const octaveChar = name[octaveCharIndex]
+  const octaveChar = name.at(-1)!
   if (!DIGIT_PATTERN.test(octaveChar)) {
     return null
   }
@@ -44,6 +37,31 @@ export function parseNoteName(name: string): NoteName | null {
   const octave = parseInt(octaveChar, 10)
 
   return { letter, accidental, octave }
+}
+
+export function parseGenericNoteName(name: string): GenericNoteName | null {
+  if (name.length < 1 || name.length > 2) {
+    return null
+  }
+
+  const letter = name[0]
+  if (!NOTE_LETTER_PATTERN.test(letter)) {
+    return null
+  }
+
+  let accidental: AccidentalChar = ""
+  if (name.length === 2) {
+    const accidentalChar = name[1]
+    if (!SHARP_FLAT_PATTERN.test(accidentalChar)) {
+      return null
+    }
+    accidental = accidentalChar as AccidentalChar
+  }
+
+  return {
+    letter,
+    accidental,
+  }
 }
 
 export function isValidNoteName(name: string): boolean {

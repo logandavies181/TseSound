@@ -1,11 +1,9 @@
-import { GenericNoteName } from "../src/key.ts"
-
 import { assertEquals } from "@std/assert"
 import { parseGenericNoteName } from "../index.ts"
 
 type test = {
   input: string
-  expected: GenericNoteName | null
+  expected: ReturnType<typeof parseGenericNoteName>
 }
 
 const tests: test[] = [

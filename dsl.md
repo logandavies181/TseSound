@@ -10,7 +10,7 @@ TseSound DSL files use a .tse extension.
 
 ## Encoding and allowed characters
 
-DSL files are encoded in UTF-8 and the following characters are allowed: /[a-gA-G0-9sS|\- \n=/#()]/
+DSL files are encoded in UTF-8 and the following characters are allowed: /[a-gA-G0-9s|\- \n=/#()]/
 
 ## Iotas
 
@@ -54,7 +54,7 @@ name := <letter>[sharp_or_flat]<digit>
 
 letter := /[a-gA-G]{1}/
 
-sharp_or_flat := /[sSbB]{0,1}/
+sharp_or_flat := /[sb]{0,1}/
 
 digit := /[0-9]{1}/
 ```

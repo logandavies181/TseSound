@@ -14,7 +14,10 @@ export function printNoteName(nn: NoteName): string {
   return `${nn.letter}${nn.accidental}${nn.octave}`
 }
 
-export type AccidentalChar = "" | "s" | "S" | "b" | "B"
+export type AccidentalChar = "" | "s" | "b"
+export const NATURAL_ACCIDENTAL = ""
+export const FLAT_ACCIDENTAL = "b"
+export const SHARP_ACCIDENTAL = "s"
 
 export function parseNoteName(name: string): NoteName | null {
   if (name.length < 2 || name.length > 3) {
@@ -74,7 +77,7 @@ export function noteNameToKey(name: string): string {
   }
 
   const letter = parsed.letter.toLowerCase()
-  const accidental = parsed.accidental ? parsed.accidental === "s" || parsed.accidental === "S" ? "s" : "b" : ""
+  const accidental = parsed.accidental ? parsed.accidental === "s" ? "s" : "b" : ""
   const octave = parsed.octave
 
   return `${letter}${accidental}${octave}`
@@ -93,9 +96,9 @@ const LETTER_TO_SEMITONE: Record<string, number> = {
 export function noteNameToSemitones(note: NoteName): number {
   const letterSemitone = LETTER_TO_SEMITONE[note.letter.toLowerCase()]
   let accidentalSemitone = 0
-  if (note.accidental === "s" || note.accidental === "S") {
+  if (note.accidental === "s") {
     accidentalSemitone = 1
-  } else if (note.accidental === "b" || note.accidental === "B") {
+  } else if (note.accidental === "b") {
     accidentalSemitone = -1
   }
   return note.octave * 12 + letterSemitone + accidentalSemitone
@@ -126,4 +129,57 @@ export function isBlackNote(n: NoteName): boolean {
   }
 
   return false
+}
+
+function copyNote(n: NoteName): NoteName {
+  return {
+    letter: n.letter,
+    accidental: n.accidental,
+    octave: n.octave,
+  }
+}
+
+export function semitoneDownFrom(g: NoteName): NoteName {
+  const ret = copyNote(g)
+
+  if (ret.accidental === SHARP_ACCIDENTAL) {
+    ret.accidental = NATURAL_ACCIDENTAL
+    return ret
+  } else if (ret.accidental === NATURAL_ACCIDENTAL) {
+    ret.accidental = FLAT_ACCIDENTAL
+    return ret
+  }
+
+  // Have to reduce the letter.
+  ret.accidental = NATURAL_ACCIDENTAL
+
+  if (ret.letter === "a" || ret.letter === "A") {
+    ret.letter = "g"
+  } else {
+    ret.letter = String.fromCharCode(ret.letter.charCodeAt(0) - 1)
+  }
+
+  if ((g.letter === "c" || g.letter === "C") && (ret.letter === "b" || ret.letter === "B")) {
+    ret.octave = g.octave - 1
+  }
+
+  const diff = semitoneDifference(ret, g)
+  switch (diff) {
+    case 0: {
+      ret.accidental = FLAT_ACCIDENTAL
+      break
+    }
+    case 1: {
+      break
+    }
+    case 2: {
+      ret.accidental = SHARP_ACCIDENTAL
+      break
+    }
+    default: {
+      throw `Unexpected semitone difference when stepping semitone down. Got ${diff}`
+    }
+  }
+
+  return ret
 }

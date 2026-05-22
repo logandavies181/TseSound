@@ -42,6 +42,5 @@ for (const t of tests) {
     mode: t.mode,
   }
   const got = notesInKey(key)
-  console.log(got)
   assertEquals(got, t.expected)
 }

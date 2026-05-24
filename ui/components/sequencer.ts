@@ -63,13 +63,12 @@ export function SeqRow(props: SeqRowProps) {
     seqRowItems.push(newBarDivider())
   })
 
-  if (isBlackNote(props.noteName)) {
-    console.log(props.noteName)
-    console.log(`is black note!!`)
-  }
+  const noteRowBackgroundColour = isBlackNote(props.noteName)
+    ? "bg-green-800"
+    : "bg-green-300"
 
   return html`
-    <div class="flex flex-row justify-start h-auto max-w-screen min-w-full bg-green-500">
+    <div class="flex flex-row justify-start h-auto max-w-screen min-w-full ${noteRowBackgroundColour}">
       <div class="flex max-w-3 min-w-3 w-3 min-h-1 h-1"></div>
       ${seqRowItems}
     </div>
@@ -105,7 +104,7 @@ export function charToPipState(c: string): PipState {
     }
     case ")":
     case "(": {
-      console.log("todo ()")
+      console.log("todo `(` and `)`")
       return PipState.off
     }
     default: {
@@ -116,7 +115,7 @@ export function charToPipState(c: string): PipState {
 }
 
 export function pipStateToColour(p: PipState): string {
-  return [colours.slate[100], colours.amber[300], colours.green[300]][p]
+  return ["none", colours.amber[300], colours.green[300]][p]
 }
 
 export type PipProps = {

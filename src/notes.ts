@@ -134,7 +134,7 @@ export function isBlackNote(n: NoteName): boolean {
     }
   }
 
-  return false
+  return true
 }
 
 function copyNote(n: NoteName): NoteName {

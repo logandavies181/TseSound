@@ -1,11 +1,12 @@
 // import { Key } from "./key.ts"
 import { Chord, n, r } from "./score.ts"
-import { NoteName, noteNameToKey, parseNoteName, printNoteName, semitoneDifference } from "../index.ts"
+import { NoteName, parseNoteName, printNoteName, semitoneDifference } from "../index.ts"
 import { notes } from "./generated_notes.ts"
 
 import { parse as parseYaml } from "@std/yaml"
 
 import { readFileSync } from "node:fs"
+import { mustParseNoteName, semitoneDownFrom } from "./notes.ts"
 
 export type SubBarDef = {
   // Number of iotas in sub-bar.
@@ -30,7 +31,7 @@ export type HeaderMeta = {
 
 export type ParsedRow = {
   chords: Chord[]
-  noteName: string
+  noteName: NoteName
   patterns: string[]
 }
 
@@ -118,14 +119,13 @@ function validateIndicativeNotes(
 }
 
 function patternsToChords(
-  noteNameString: string,
+  noteName: NoteName,
   patterns: string[],
   header: Header,
 ): Chord[] {
   // TODO: this forces A=440Hz
-  // We're also parsing the noteName a second time where we could avoid it.
-  const key = noteNameToKey(noteNameString)
-  const pitch = (notes as Record<string, { frequency: number }>)[key]
+  const noteNameString = printNoteName(noteName)
+  const pitch = (notes as Record<string, { frequency: number }>)[noteNameString]
   if (!pitch) {
     throw new Error(`Unknown note: ${noteNameString}`)
   }
@@ -261,31 +261,36 @@ export function parseTse(content: string): ParsedRow[] {
 
   const parsedRows: ParsedRow[] = []
 
-  // let prevNoteName = definitiveNote
+  let prevNote = definitiveNote
   for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
     const row = rows[rowIdx]
     // TODO: need to get iota count for current bar. Currently isn't changeable per bar like intended.
 
+    let thisNote: NoteName
     if (row.noteNameString === "") {
-      row.noteNameString = "c9" //FIXME
+      thisNote = semitoneDownFrom(prevNote)
+    } else {
+      thisNote = mustParseNoteName(row.noteNameString)
     }
 
     try {
       const chords = patternsToChords(
-        row.noteNameString,
+        thisNote,
         row.patterns,
         header,
       )
       parsedRows.push({
         chords,
         patterns: row.patterns,
-        noteName: row.noteNameString,
+        noteName: thisNote,
       })
     } catch (e: unknown) {
       throw new Error(`Error on line ${numHeaderLines + rowIdx}:`, {
         cause: e,
       })
     }
+
+    prevNote = thisNote
   }
 
   return parsedRows

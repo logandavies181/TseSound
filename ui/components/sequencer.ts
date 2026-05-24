@@ -3,7 +3,9 @@ import { useEffect, useState } from "preact/hooks"
 import { html } from "../html.ts"
 import { colours } from "../colours.ts"
 import { ParsedRow } from "../../src/parser.ts"
+import { NoteName, isBlackNote } from "../../src/notes.ts"
 
+// TODO: move this to main
 export function waitForBoundFns(cb: () => void) {
   const intervalId = setInterval(() => {
     //@ts-ignore: actually it might not be defined, which is the point.
@@ -32,7 +34,7 @@ export function Sequencer() {
         <div class="flex flex-col min-w-full">
           ${rows.map((row) =>
             html`
-              <${SeqRow} patterns="${row.patterns}" />
+              <${SeqRow} patterns="${row.patterns}" noteName=${row.noteName} />
             `
           )}
         </div>
@@ -43,6 +45,7 @@ export function Sequencer() {
 
 export type SeqRowProps = {
   patterns: string[]
+  noteName: NoteName
 }
 
 export function SeqRow(props: SeqRowProps) {
@@ -59,6 +62,11 @@ export function SeqRow(props: SeqRowProps) {
     seqRowItems.push(...pips)
     seqRowItems.push(newBarDivider())
   })
+
+  if (isBlackNote(props.noteName)) {
+    console.log(props.noteName)
+    console.log(`is black note!!`)
+  }
 
   return html`
     <div class="flex flex-row justify-start h-auto max-w-screen min-w-full bg-green-500">

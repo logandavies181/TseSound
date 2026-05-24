@@ -20,6 +20,8 @@ export const FLAT_ACCIDENTAL = "b"
 export const SHARP_ACCIDENTAL = "s"
 
 export function parseNoteName(name: string): NoteName | null {
+  // TODO: use result pattern or throw
+
   if (name.length < 2 || name.length > 3) {
     return null
   }
@@ -39,6 +41,14 @@ export function parseNoteName(name: string): NoteName | null {
   const octave = parseInt(octaveChar, 10)
 
   return { letter, accidental, octave }
+}
+
+export function mustParseNoteName(name: string): NoteName {
+  const ret = parseNoteName(name)
+  if (ret === null) {
+    throw `could not parse ${name}`
+  }
+  return ret
 }
 
 export function parseGenericNoteName(name: string): GenericNoteName | null {
@@ -66,11 +76,7 @@ export function parseGenericNoteName(name: string): GenericNoteName | null {
   }
 }
 
-export function isValidNoteName(name: string): boolean {
-  return parseNoteName(name) !== null
-}
-
-export function noteNameToKey(name: string): string {
+export function noteNameStringToKey(name: string): string {
   const parsed = parseNoteName(name)
   if (!parsed) {
     throw new Error(`Invalid note name: ${name}`)

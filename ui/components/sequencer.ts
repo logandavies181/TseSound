@@ -65,7 +65,7 @@ export function SeqRow(props: SeqRowProps) {
 
   const noteRowBackgroundColour = isBlackNote(props.noteName)
     ? "bg-green-800"
-    : "bg-green-300"
+    : "bg-green-600"
 
   return html`
     <div class="flex flex-row justify-start h-auto max-w-screen min-w-full ${noteRowBackgroundColour}">
@@ -80,6 +80,8 @@ export enum PipState {
   starting,
   ringing,
   barDivider,
+  lparen,
+  rparen,
 }
 
 function newBarDivider() {
@@ -102,10 +104,11 @@ export function charToPipState(c: string): PipState {
     case "|": {
       return PipState.barDivider
     }
-    case ")":
+    case ")": {
+      return PipState.rparen
+    }
     case "(": {
-      console.log("todo `(` and `)`")
-      return PipState.off
+      return PipState.lparen
     }
     default: {
       console.warn(`warn: unknown pipState: ${c}`)
@@ -125,14 +128,29 @@ export type PipProps = {
 export function Pip(props: PipProps) {
   const [pipState, setPipstate] = useState<PipState>(props.state)
 
-  if (pipState > 2) {
+  if (pipState >= PipState.lparen) {
+    const flexX = pipState === PipState.lparen ? "0" : "10"
+
+    return html`
+      <div class="min-w-3 max-w-[5%] max-h-[100%]">
+        <svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M 5 0 C ${flexX} 0 ${flexX} 10 5 10"
+            fill="black"
+          />
+        </svg>
+      </div>
+    `
+  }
+
+  if (pipState === PipState.barDivider) {
     return html`
       <div class="min-w-3 max-w-[5%] max-h-1">
-        <svg viewBox="0 0 5 60" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 5 100" xmlns="http://www.w3.org/2000/svg">
           <rect
             x="2"
             width="1"
-            height="60"
+            height="20"
             fill="black"
           />
         </svg>
@@ -145,7 +163,7 @@ export function Pip(props: PipProps) {
   }
 
   return html`
-    <div class="flex grow min-w-3 max-w-[8%]" onClick="${onClick}">
+    <div class="flex min-w-3 max-w-[8%] min-h-[80%]" onClick="${onClick}">
       <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
         <rect
           x="5"

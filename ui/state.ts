@@ -42,7 +42,7 @@ export function publish(row: number, column: number, val: PipState) {
 
 export function togglePipState(row: number, column: number): PipState {
   const before = pipStates[row][column]
-  const left = column > 0 ? pipStates[row][column-1] : PipState.off
+  const left = column > 0 ? pipStates[row][column - 1] : PipState.off
 
   let newPipState: PipState
   if (left === PipState.off) {
@@ -69,10 +69,10 @@ export function togglePipState(row: number, column: number): PipState {
   if (newPipState === PipState.off) {
     let i = 1
     loop: while (true) {
-      const next = pipStates[row][column+i]
+      const next = pipStates[row][column + i]
       switch (next) {
         case PipState.ringing: {
-          publish(row, column+i, PipState.off)
+          publish(row, column + i, PipState.off)
           break
         }
         case PipState.off:

@@ -15,11 +15,23 @@ function App() {
   `
 }
 
-document.body.innerHTML = ""
-document.addEventListener("contextmenu", (e) => e.stopPropagation(), true)
-render(
-  html`
-    <${App} />
-  `,
-  document.body,
-)
+function main() {
+  document.body.innerHTML = ""
+  document.addEventListener("contextmenu", (e) => e.stopPropagation(), true)
+  render(
+    html`
+      <${App} />
+    `,
+    document.body,
+  )
+}
+
+const intervalId = setInterval(() => {
+  //@ts-ignore: actually it might not be defined, which is the point.
+  if (typeof callParseTseFile !== "undefined") {
+    clearInterval(intervalId)
+    main()
+  }
+  console.log("waiting")
+}, 100)
+

@@ -4,37 +4,27 @@ import { html } from "../html.ts"
 import { colours } from "../colours.ts"
 import { ParsedRow } from "../../src/parser.ts"
 import { NoteName, isBlackNote } from "../../src/notes.ts"
-
-// TODO: move this to main
-export function waitForBoundFns(cb: () => void) {
-  const intervalId = setInterval(() => {
-    //@ts-ignore: actually it might not be defined, which is the point.
-    if (typeof callParseTseFile !== "undefined") {
-      clearInterval(intervalId)
-      cb()
-    }
-    console.log("waiting")
-  }, 100)
-}
+import { initializeState, PipState, PipStates } from "../state.ts"
 
 export function Sequencer() {
   const [rows, setRows] = useState<ParsedRow[]>([])
 
   useEffect(() => {
-    waitForBoundFns(async () => {
+    (async () => {
       const res = await callParseTseFile()
       const tse = await JSON.parse(res)
+      initializeState(tse)
       setRows(tse)
-    })
+    })()
   }, [])
 
   return html`
     <div class="flex flex-col min-h-[50%] min-w-full overflow-x-clip overflow-y-clip">
       <div class="flex flex-col overflow-x-scroll min-w-full bg-green-800">
         <div class="flex flex-col min-w-full">
-          ${rows.map((row) =>
+          ${rows.map((row, idx) =>
             html`
-              <${SeqRow} patterns="${row.patterns}" noteName=${row.noteName} />
+              <${SeqRow} rowIndex=${idx} noteName=${row.noteName} />
             `
           )}
         </div>
@@ -44,24 +34,12 @@ export function Sequencer() {
 }
 
 export type SeqRowProps = {
-  patterns: string[]
+  rowIndex: number
   noteName: NoteName
 }
 
 export function SeqRow(props: SeqRowProps) {
-  const pipPatterns = props.patterns.map((pattern) => {
-    return pattern.split("").map((char) => {
-      return html`
-        <${Pip} state="${charToPipState(char)}" />
-      `
-    })
-  })
-
-  const seqRowItems = [newBarDivider()]
-  pipPatterns.forEach((pips) => {
-    seqRowItems.push(...pips)
-    seqRowItems.push(newBarDivider())
-  })
+  const pipStates = PipStates.value[props.rowIndex]
 
   const noteRowBackgroundColour = isBlackNote(props.noteName)
     ? "bg-green-800"
@@ -70,51 +48,11 @@ export function SeqRow(props: SeqRowProps) {
   return html`
     <div class="flex flex-row justify-start h-auto max-w-screen min-w-full ${noteRowBackgroundColour}">
       <div class="flex max-w-3 min-w-3 w-3 min-h-1 h-1"></div>
-      ${seqRowItems}
+      ${pipStates.map(pipState => {
+        return html`<${Pip} state="${pipState}" />`
+      })}
     </div>
   `
-}
-
-export enum PipState {
-  off,
-  starting,
-  ringing,
-  barDivider,
-  lparen,
-  rparen,
-}
-
-function newBarDivider() {
-  return html`
-    <${Pip} state="${PipState.barDivider}" />
-  `
-}
-
-export function charToPipState(c: string): PipState {
-  switch (c) {
-    case "-": {
-      return PipState.off
-    }
-    case "1": {
-      return PipState.starting
-    }
-    case "0": {
-      return PipState.ringing
-    }
-    case "|": {
-      return PipState.barDivider
-    }
-    case ")": {
-      return PipState.rparen
-    }
-    case "(": {
-      return PipState.lparen
-    }
-    default: {
-      console.warn(`warn: unknown pipState: ${c}`)
-      return PipState.off
-    }
-  }
 }
 
 export function pipStateToColour(p: PipState): string {

@@ -1,24 +1,5 @@
 import { ParsedRow } from "../index.ts"
 
-type Callback<T> = (t: T) => void
-
-class Topic<T> {
-  private callbacks = new Map<string, Callback<T>>()
-
-  constructor(public value: T) {}
-
-  public Subscribe(name: string, cb: Callback<T>) {
-    this.callbacks.set(name, cb)
-  }
-
-  public Publish(t: T) {
-    this.value = t
-    this.callbacks.forEach((cb) => {
-      cb(t)
-    })
-  }
-}
-
 export function initializeState(parsedRows: ParsedRow[]) {
   // TODO: this is impossible to read
 
@@ -30,7 +11,7 @@ export function initializeState(parsedRows: ParsedRow[]) {
     })
   )
 
-  PipStates.value = pipRows.map((pipPatterns) => {
+  pipStates = pipRows.map((pipPatterns) => {
     const seqRowItems = [PipState.barDivider]
     pipPatterns.forEach((pips) => {
       seqRowItems.push(...pips)
@@ -40,7 +21,7 @@ export function initializeState(parsedRows: ParsedRow[]) {
   })
 }
 
-export const PipStates = new Topic<PipState[][]>([])
+export let pipStates: PipState[][] = []
 
 export enum PipState {
   off,

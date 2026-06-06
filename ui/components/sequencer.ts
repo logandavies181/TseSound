@@ -4,7 +4,7 @@ import { html } from "../html.ts"
 import { colours } from "../colours.ts"
 import { ParsedRow } from "../../src/parser.ts"
 import { isBlackNote, NoteName } from "../../src/notes.ts"
-import { initializeState, PipState, PipStates } from "../state.ts"
+import { initializeState, PipState, pipStates } from "../state.ts"
 
 export function Sequencer() {
   const [rows, setRows] = useState<ParsedRow[]>([])
@@ -39,16 +39,16 @@ export type SeqRowProps = {
 }
 
 export function SeqRow(props: SeqRowProps) {
-  const pipStates = PipStates.value[props.rowIndex]
+  const _pipStates = pipStates[props.rowIndex]
 
   const noteRowBackgroundColour = isBlackNote(props.noteName) ? "bg-green-800" : "bg-green-600"
 
   return html`
     <div class="flex flex-row justify-start h-auto max-w-screen min-w-full ${noteRowBackgroundColour}">
       <div class="flex max-w-3 min-w-3 w-3 min-h-1 h-1"></div>
-      ${pipStates.map((pipState) => {
+      ${_pipStates.map((pipState, idx) => {
         return html`
-          <${Pip} state="${pipState}" />
+          <${Pip} state="${pipState}" row="${props.rowIndex}" index="${idx}" />
         `
       })}
     </div>
@@ -60,11 +60,19 @@ export function pipStateToColour(p: PipState): string {
 }
 
 export type PipProps = {
+  row: number
+  index: number
   state: PipState
 }
 
 export function Pip(props: PipProps) {
   const [pipState, setPipstate] = useState<PipState>(props.state)
+
+  const onClick = () => {
+    const newPipState = (pipState + 1) % 3 as PipState
+    setPipstate(newPipState)
+    pipStates[props.row][props.index] = newPipState
+  }
 
   if (pipState >= PipState.lparen) {
     const flexX = pipState === PipState.lparen ? "0" : "10"
@@ -94,10 +102,6 @@ export function Pip(props: PipProps) {
         </svg>
       </div>
     `
-  }
-
-  const onClick = () => {
-    setPipstate((pipState + 1) % 3)
   }
 
   return html`

@@ -3,14 +3,14 @@ import { useEffect, useState } from "preact/hooks"
 import { html } from "../html.ts"
 import { colours } from "../colours.ts"
 import { ParsedRow } from "../../src/parser.ts"
-import { NoteName, isBlackNote } from "../../src/notes.ts"
+import { isBlackNote, NoteName } from "../../src/notes.ts"
 import { initializeState, PipState, PipStates } from "../state.ts"
 
 export function Sequencer() {
   const [rows, setRows] = useState<ParsedRow[]>([])
 
   useEffect(() => {
-    (async () => {
+    ;(async () => {
       const res = await callParseTseFile()
       const tse = await JSON.parse(res)
       initializeState(tse)
@@ -24,7 +24,7 @@ export function Sequencer() {
         <div class="flex flex-col min-w-full">
           ${rows.map((row, idx) =>
             html`
-              <${SeqRow} rowIndex=${idx} noteName=${row.noteName} />
+              <${SeqRow} rowIndex="${idx}" noteName="${row.noteName}" />
             `
           )}
         </div>
@@ -41,15 +41,15 @@ export type SeqRowProps = {
 export function SeqRow(props: SeqRowProps) {
   const pipStates = PipStates.value[props.rowIndex]
 
-  const noteRowBackgroundColour = isBlackNote(props.noteName)
-    ? "bg-green-800"
-    : "bg-green-600"
+  const noteRowBackgroundColour = isBlackNote(props.noteName) ? "bg-green-800" : "bg-green-600"
 
   return html`
     <div class="flex flex-row justify-start h-auto max-w-screen min-w-full ${noteRowBackgroundColour}">
       <div class="flex max-w-3 min-w-3 w-3 min-h-1 h-1"></div>
-      ${pipStates.map(pipState => {
-        return html`<${Pip} state="${pipState}" />`
+      ${pipStates.map((pipState) => {
+        return html`
+          <${Pip} state="${pipState}" />
+        `
       })}
     </div>
   `

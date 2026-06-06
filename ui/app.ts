@@ -34,4 +34,3 @@ const intervalId = setInterval(() => {
   }
   console.log("waiting")
 }, 100)
-

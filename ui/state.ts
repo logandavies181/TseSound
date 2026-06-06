@@ -22,13 +22,15 @@ class Topic<T> {
 export function initializeState(parsedRows: ParsedRow[]) {
   // TODO: this is impossible to read
 
-  const pipRows = parsedRows.map(row => row.patterns.map((pattern) => {
-    return pattern.split("").map((char) => {
-      return charToPipState(char)
+  const pipRows = parsedRows.map((row) =>
+    row.patterns.map((pattern) => {
+      return pattern.split("").map((char) => {
+        return charToPipState(char)
+      })
     })
-  }))
+  )
 
-  PipStates.value = pipRows.map(pipPatterns => {
+  PipStates.value = pipRows.map((pipPatterns) => {
     const seqRowItems = [PipState.barDivider]
     pipPatterns.forEach((pips) => {
       seqRowItems.push(...pips)

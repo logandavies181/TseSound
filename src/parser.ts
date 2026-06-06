@@ -1,4 +1,3 @@
-// import { Key } from "./key.ts"
 import { Chord, n, r } from "./score.ts"
 import { NoteName, parseNoteName, printNoteName, semitoneDifference } from "../index.ts"
 import { notes } from "./generated_notes.ts"

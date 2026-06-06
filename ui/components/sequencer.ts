@@ -4,7 +4,7 @@ import { html } from "../html.ts"
 import { colours } from "../colours.ts"
 import { ParsedRow } from "../../src/parser.ts"
 import { isBlackNote, NoteName } from "../../src/notes.ts"
-import { initializeState, PipState, pipStates } from "../state.ts"
+import { initializeState, PipState, pipStates, subscribe, togglePipState } from "../state.ts"
 
 export function Sequencer() {
   const [rows, setRows] = useState<ParsedRow[]>([])
@@ -68,10 +68,10 @@ export type PipProps = {
 export function Pip(props: PipProps) {
   const [pipState, setPipstate] = useState<PipState>(props.state)
 
+  subscribe(props.row, props.index, setPipstate)
+
   const onClick = () => {
-    const newPipState = (pipState + 1) % 3 as PipState
-    setPipstate(newPipState)
-    pipStates[props.row][props.index] = newPipState
+    togglePipState(props.row, props.index)
   }
 
   if (pipState >= PipState.lparen) {
@@ -92,11 +92,11 @@ export function Pip(props: PipProps) {
   if (pipState === PipState.barDivider) {
     return html`
       <div class="min-w-3 max-w-[5%] max-h-1">
-        <svg viewBox="0 0 5 100" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 5 5" xmlns="http://www.w3.org/2000/svg">
           <rect
             x="2"
             width="1"
-            height="20"
+            height="5"
             fill="black"
           />
         </svg>

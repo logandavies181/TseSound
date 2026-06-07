@@ -41,6 +41,8 @@ document.addEventListener("mouseup", (e) => {
       break
     }
   }
+
+  e.stopPropagation()
 })
 
 function handleNormalDrag() {
@@ -59,8 +61,8 @@ function handleNormalDrag() {
     return null
   }
 
-  const first = getPipFromPoint(startX, startY)
-  const last = getPipFromPoint(endX, startY) // startY so we stay on the same row
+  const first = getPipFromPoint(Math.min(startX, endX), startY)
+  const last = getPipFromPoint(Math.max(startX, endX), startY) // startY so we stay on the same row
 
   if (!first || !last) {
     return

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "preact/hooks"
 
-import { html } from "../html.ts"
-import { colours } from "../colours.ts"
+import { html } from "../src/html.ts"
+import { colours } from "../src/colours.ts"
 import { ParsedRow } from "../../src/parser.ts"
 import { isBlackNote, NoteName } from "../../src/notes.ts"
-import { initializeState, pipStates, PipType, subscribe, togglePipState } from "../state.ts"
+import { initializeState, pipStates, PipType, subscribe, togglePipState } from "../src/state.ts"
 
 export function Sequencer() {
   const [rows, setRows] = useState<ParsedRow[]>([])
@@ -66,16 +66,20 @@ export type PipProps = {
 }
 
 export function Pip(props: PipProps) {
-  const [pipState, setPipstate] = useState<PipType>(props.state)
+  const [pipType, setPipType] = useState<PipType>(props.state)
+  const [selected, setSelected] = useState<boolean>(false)
 
-  subscribe(props.row, props.index, setPipstate)
+  subscribe(props.row, props.index, (pipState) => {
+    setSelected(pipState.selected)
+    setPipType(pipState.type)
+  })
 
   const onClick = () => {
     togglePipState(props.row, props.index)
   }
 
-  if (pipState >= PipType.lparen) {
-    const flexX = pipState === PipType.lparen ? "0" : "10"
+  if (pipType >= PipType.lparen) {
+    const flexX = pipType === PipType.lparen ? "0" : "10"
 
     return html`
       <div class="min-w-3 max-w-[5%] max-h-[100%]">
@@ -89,7 +93,7 @@ export function Pip(props: PipProps) {
     `
   }
 
-  if (pipState === PipType.barDivider) {
+  if (pipType === PipType.barDivider) {
     return html`
       <div class="min-w-3 max-w-[5%] max-h-1">
         <svg viewBox="0 0 5 5" xmlns="http://www.w3.org/2000/svg">
@@ -104,15 +108,22 @@ export function Pip(props: PipProps) {
     `
   }
 
+  let pipColour: string
+  if (selected) {
+    pipColour = "red" // TODO: awful pallette
+  } else {
+    pipColour = pipStateToColour(pipType)
+  }
+
   return html`
-    <div class="flex min-w-3 max-w-[8%] min-h-[80%]" onClick="${onClick}">
+    <div class="tse-selectable flex min-w-3 max-w-[8%] min-h-[80%]" onClick="${onClick}">
       <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
         <rect
           x="5"
           y="5"
           width="90"
           height="50"
-          fill="${pipStateToColour(pipState)}"
+          fill="${pipColour}"
         />
       </svg>
     </div>

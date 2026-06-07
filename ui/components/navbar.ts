@@ -1,4 +1,4 @@
-import { html } from "../html.ts"
+import { html } from "../src/html.ts"
 
 export function Navbar() {
   return html`

@@ -1,6 +1,6 @@
 import { render } from "preact"
 
-import { html } from "./html.ts"
+import { html } from "./src/html.ts"
 import { Navbar } from "./components/navbar.ts"
 import { Sequencer } from "./components/sequencer.ts"
 

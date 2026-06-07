@@ -26,7 +26,7 @@ export function initializeState(parsedRows: ParsedRow[]) {
   })
 }
 
-type Callback = (ps: PipType) => void
+type Callback = (ps: PipState) => void
 
 const callbacks: Callback[][] = []
 
@@ -45,44 +45,51 @@ export function subscribe(row: number, column: number, cb: Callback) {
   callbacks[row][column] = cb
 }
 
-export function publish(row: number, column: number, val: PipType) {
-  pipStates[row][column].type = val
+export function publish(row: number, column: number, val: PipState) {
+  pipStates[row][column] = val
   callbacks[row][column](val)
 }
 
 export function togglePipState(row: number, column: number): PipType {
-  const before = pipStates[row][column].type
+  const before = pipStates[row][column]
+  const beforeType = before.type
   const left = column > 0 ? pipStates[row][column - 1].type : PipType.off
 
-  let newPipState: PipType
+  let newPipType: PipType
   if (left === PipType.off) {
-    switch (before) {
+    switch (beforeType) {
       case PipType.off: {
-        newPipState = PipType.starting
+        newPipType = PipType.starting
         break
       }
       case PipType.starting: {
-        newPipState = PipType.off
+        newPipType = PipType.off
         break
       }
       default: {
         console.warn("maybe unintended pipstate toggle case")
-        newPipState = (before + 1) % 3 as PipType
+        newPipType = (beforeType + 1) % 3 as PipType
       }
     }
   } else {
-    newPipState = (before + 1) % 3 as PipType
+    newPipType = (beforeType + 1) % 3 as PipType
   }
 
-  publish(row, column, newPipState)
+  publish(row, column, {
+    selected: before.selected,
+    type: newPipType,
+  })
 
-  if (newPipState === PipType.off) {
+  if (newPipType === PipType.off) {
     let i = 1
     loop: while (true) {
       const next = pipStates[row][column + i]
       switch (next.type) {
         case PipType.ringing: {
-          publish(row, column + i, PipType.off)
+          publish(row, column + i, {
+            selected: before.selected,
+            type: PipType.off,
+          })
           break
         }
         case PipType.off:
@@ -98,7 +105,7 @@ export function togglePipState(row: number, column: number): PipType {
     }
   }
 
-  return newPipState
+  return newPipType
 }
 
 export enum PipType {

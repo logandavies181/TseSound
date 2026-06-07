@@ -4,6 +4,8 @@ import { html } from "./src/html.ts"
 import { Navbar } from "./components/navbar.ts"
 import { Sequencer } from "./components/sequencer.ts"
 
+import "./src/drag.ts"
+
 function App() {
   return html`
     <div class="flex grow flex-col min-w-full min-h-screen">

@@ -116,7 +116,12 @@ export function Pip(props: PipProps) {
   }
 
   return html`
-    <div class="tse-selectable flex min-w-3 max-w-[8%] min-h-[80%]" onClick="${onClick}">
+    <div
+      class="tse-selectable flex min-w-3 max-w-[8%] min-h-[80%]"
+      onClick="${onClick}"
+      data-row="${props.row}"
+      data-column="${props.index}"
+    >
       <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
         <rect
           x="5"

@@ -4,7 +4,7 @@ import { html } from "../html.ts"
 import { colours } from "../colours.ts"
 import { ParsedRow } from "../../src/parser.ts"
 import { isBlackNote, NoteName } from "../../src/notes.ts"
-import { initializeState, PipState, pipStates, subscribe, togglePipState } from "../state.ts"
+import { initializeState, pipStates, PipType, subscribe, togglePipState } from "../state.ts"
 
 export function Sequencer() {
   const [rows, setRows] = useState<ParsedRow[]>([])
@@ -48,25 +48,25 @@ export function SeqRow(props: SeqRowProps) {
       <div class="flex max-w-3 min-w-3 w-3 min-h-1 h-1"></div>
       ${_pipStates.map((pipState, idx) => {
         return html`
-          <${Pip} state="${pipState}" row="${props.rowIndex}" index="${idx}" />
+          <${Pip} state="${pipState.type}" row="${props.rowIndex}" index="${idx}" />
         `
       })}
     </div>
   `
 }
 
-export function pipStateToColour(p: PipState): string {
+export function pipStateToColour(p: PipType): string {
   return ["none", colours.amber[300], colours.green[300]][p]
 }
 
 export type PipProps = {
   row: number
   index: number
-  state: PipState
+  state: PipType
 }
 
 export function Pip(props: PipProps) {
-  const [pipState, setPipstate] = useState<PipState>(props.state)
+  const [pipState, setPipstate] = useState<PipType>(props.state)
 
   subscribe(props.row, props.index, setPipstate)
 
@@ -74,8 +74,8 @@ export function Pip(props: PipProps) {
     togglePipState(props.row, props.index)
   }
 
-  if (pipState >= PipState.lparen) {
-    const flexX = pipState === PipState.lparen ? "0" : "10"
+  if (pipState >= PipType.lparen) {
+    const flexX = pipState === PipType.lparen ? "0" : "10"
 
     return html`
       <div class="min-w-3 max-w-[5%] max-h-[100%]">
@@ -89,7 +89,7 @@ export function Pip(props: PipProps) {
     `
   }
 
-  if (pipState === PipState.barDivider) {
+  if (pipState === PipType.barDivider) {
     return html`
       <div class="min-w-3 max-w-[5%] max-h-1">
         <svg viewBox="0 0 5 5" xmlns="http://www.w3.org/2000/svg">

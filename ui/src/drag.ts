@@ -1,28 +1,83 @@
 import { pipStates, publish } from "./state.ts"
 
+enum EventType {
+  normal,
+  shift,
+}
+
 let startX = 0
 let startY = 0
 let endX = 0
 let endY = 0
+let eventType = EventType.normal
 
 document.addEventListener("mousedown", (e) => {
   startX = e.pageX
   startY = e.pageY
+
+  if (e.shiftKey) {
+    eventType = EventType.shift
+  } else {
+    eventType = EventType.normal
+  }
 })
 
-document.addEventListener("mousemove", (e) => {
+document.addEventListener("mouseup", (e) => {
   endX = e.pageX
   endY = e.pageY
-})
 
-document.addEventListener("mouseup", () => {
   const dist = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2))
-  console.log(dist)
-
   if (dist < 5) {
     return
   }
 
+  switch (eventType) {
+    case EventType.normal: {
+      handleNormalDrag()
+      break
+    }
+    case EventType.shift: {
+      handleShiftDrag()
+      break
+    }
+  }
+})
+
+function handleNormalDrag() {
+  unselectAll()
+
+  const getPipFromPoint = (x: number, y: number): Element | null => {
+    let elem = document.elementFromPoint(x, y)
+    while (elem !== null) {
+      if (elem.classList.contains("tse-selectable")) {
+        return elem
+      }
+
+      elem = elem.parentElement
+    }
+
+    return null
+  }
+
+  const first = getPipFromPoint(startX, startY)
+  const last = getPipFromPoint(endX, startY) // startY so we stay on the same row
+
+  if (!first || !last) {
+    return
+  }
+
+  const items = [first, last]
+
+  items.forEach((item) => {
+    const row = parseInt(item.getAttribute("data-row")!)
+    const column = parseInt(item.getAttribute("data-column")!)
+    const before = pipStates[row][column]
+    before.selected = true
+    publish(row, column, before)
+  })
+}
+
+function handleShiftDrag() {
   const elems = document.querySelectorAll(".tse-selectable")
   for (const elem of elems) {
     const row = parseInt(elem.getAttribute("data-row")!)
@@ -47,4 +102,16 @@ document.addEventListener("mouseup", () => {
 
     publish(row, column, newPipState)
   }
-})
+}
+
+function unselectAll() {
+  const elems = document.querySelectorAll(".tse-selectable")
+  for (const elem of elems) {
+    const row = parseInt(elem.getAttribute("data-row")!)
+    const column = parseInt(elem.getAttribute("data-column")!)
+    const before = pipStates[row][column]
+    before.selected = false
+
+    publish(row, column, before)
+  }
+}

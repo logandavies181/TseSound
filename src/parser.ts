@@ -16,6 +16,12 @@ export type SubBarDef = {
   // pos: number
 }
 
+export type TseFile = {
+  header: Header
+  rows: ParsedRow[]
+  numHeaderLines: number
+}
+
 export type Header = {
   meta: HeaderMeta
   subBars: SubBarDef[]
@@ -23,7 +29,7 @@ export type Header = {
 
 export type HeaderMeta = {
   // key: typeof Key
-  key: string
+  key: string // TODO
   iotaCount: number
   timeSignature: number
 }
@@ -225,7 +231,7 @@ function patternsToChords(
   return ret
 }
 
-export function parseTse(content: string): ParsedRow[] {
+export function parseTse(content: string): TseFile {
   const lines = content.split("\n")
   const { header, bodyLines, numHeaderLines } = parseHeader(lines)
 
@@ -292,17 +298,21 @@ export function parseTse(content: string): ParsedRow[] {
     prevNote = thisNote
   }
 
-  return parsedRows
+  return {
+    header: header,
+    rows: parsedRows,
+    numHeaderLines,
+  }
 }
 
 export function parseTseFile(
   fileName: string,
-): ParsedRow[] {
+): TseFile {
   return parseTse(readFileSync(fileName, "utf-8"))
 }
 
 export function chordsFromTseFile(
   fileName: string,
 ): Chord[][] {
-  return parseTse(readFileSync(fileName, "utf-8")).map((row) => row.chords)
+  return parseTse(readFileSync(fileName, "utf-8")).rows.map((row) => row.chords)
 }

@@ -1,6 +1,11 @@
-import { ParsedRow } from "../index.ts"
+import { TseFile } from "../../index.ts"
 
-export function initializeState(parsedRows: ParsedRow[]) {
+let _tseFile: TseFile | undefined = undefined
+
+export function initializeState(tseFile: TseFile) {
+  _tseFile = tseFile
+  const parsedRows = _tseFile.rows
+
   // TODO: this is impossible to read
 
   const pipRows = parsedRows.map((row) =>
@@ -25,6 +30,58 @@ export function initializeState(parsedRows: ParsedRow[]) {
     })
   })
 }
+
+function formatPipType(p: PipType): string {
+  switch (p) {
+    case PipType.off: {
+      return "-"
+    }
+    case PipType.lparen: {
+      return "("
+    }
+    case PipType.rparen: {
+      return ")"
+    }
+    case PipType.ringing: {
+      return "0"
+    }
+    case PipType.starting: {
+      return "1"
+    }
+    case PipType.barDivider: {
+      return "|"
+    }
+    default: {
+      throw `unknown PipType: ${p}`
+    }
+  }
+}
+
+export function updateTseFile() {
+  pipStates.forEach((pipStateRow, i) => {
+    const patterns: string[] = []
+    let sb = ""
+    for (const pipState of pipStateRow) {
+      switch (pipState.type) {
+        case PipType.barDivider: {
+          patterns.push(sb)
+          sb = ""
+          break
+        }
+        default: {
+          sb += formatPipType(pipState.type)
+        }
+      }
+    }
+
+    _tseFile!.rows[i].patterns = patterns
+  })
+
+  boundUpdateTseFile(JSON.stringify(_tseFile))
+}
+
+// @ts-ignore
+globalThis.UPDATETSEFILE = updateTseFile
 
 type Callback = (ps: PipState) => void
 

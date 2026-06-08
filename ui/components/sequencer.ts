@@ -5,6 +5,7 @@ import { colours } from "../src/colours.ts"
 import { ParsedRow } from "../../src/parser.ts"
 import { isBlackNote, NoteName } from "../../src/notes.ts"
 import { initializeState, pipStates, PipType, subscribe, togglePipState } from "../src/state.ts"
+import { TseFile } from "../../index.ts"
 
 export function Sequencer() {
   const [rows, setRows] = useState<ParsedRow[]>([])
@@ -12,9 +13,9 @@ export function Sequencer() {
   useEffect(() => {
     ;(async () => {
       const res = await callParseTseFile()
-      const tse = await JSON.parse(res)
+      const tse = await JSON.parse(res) as TseFile
       initializeState(tse)
-      setRows(tse)
+      setRows(tse.rows)
     })()
   }, [])
 

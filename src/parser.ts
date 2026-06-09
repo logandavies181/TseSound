@@ -4,8 +4,8 @@ import { notes } from "./generated_notes.ts"
 
 import { parse as parseYaml } from "@std/yaml"
 
-import { readFileSync } from "node:fs"
 import { mustParseNoteName, semitoneDownFrom } from "./notes.ts"
+import { Key } from "./key.ts"
 
 export type SubBarDef = {
   // Number of iotas in sub-bar.
@@ -28,8 +28,7 @@ export type Header = {
 }
 
 export type HeaderMeta = {
-  // key: typeof Key
-  key: string // TODO
+  key: Key
   iotaCount: number
   timeSignature: number
 }
@@ -308,11 +307,11 @@ export function parseTse(content: string): TseFile {
 export function parseTseFile(
   fileName: string,
 ): TseFile {
-  return parseTse(readFileSync(fileName, "utf-8"))
+  return parseTse(Deno.readTextFileSync(fileName))
 }
 
 export function chordsFromTseFile(
   fileName: string,
 ): Chord[][] {
-  return parseTse(readFileSync(fileName, "utf-8")).rows.map((row) => row.chords)
+  return parseTse(Deno.readTextFileSync(fileName)).rows.map((row) => row.chords)
 }

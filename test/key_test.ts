@@ -14,36 +14,39 @@ function mustParseGenericNoteName(s: string): GenericNoteName {
 
 const m = mustParseGenericNoteName
 
-Deno.test({name: "key", fn() {
-  type test = {
-    tonic: string
-    mode: KeyMode
-    expected: GenericNoteName[]
-  }
-
-  const tests: test[] = [
-    {
-      tonic: "f",
-      mode: KeyMode.major,
-      expected: [
-        m("f"),
-        m("g"),
-        m("a"),
-        m("bb"),
-        m("c"),
-        m("d"),
-        m("e"),
-        m("f"),
-      ],
-    },
-  ]
-
-  for (const t of tests) {
-    const key = {
-      tonic: m(t.tonic),
-      mode: t.mode,
+Deno.test({
+  name: "key",
+  fn() {
+    type test = {
+      tonic: string
+      mode: KeyMode
+      expected: GenericNoteName[]
     }
-    const got = notesInKey(key)
-    assertEquals(got, t.expected)
-  }
-}})
+
+    const tests: test[] = [
+      {
+        tonic: "f",
+        mode: KeyMode.major,
+        expected: [
+          m("f"),
+          m("g"),
+          m("a"),
+          m("bb"),
+          m("c"),
+          m("d"),
+          m("e"),
+          m("f"),
+        ],
+      },
+    ]
+
+    for (const t of tests) {
+      const key = {
+        tonic: m(t.tonic),
+        mode: t.mode,
+      }
+      const got = notesInKey(key)
+      assertEquals(got, t.expected)
+    }
+  },
+})

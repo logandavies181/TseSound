@@ -1,7 +1,5 @@
-import { parseTse } from "../src/parser.ts"
-import { readFileSync } from "node:fs"
+import { parseTseFile } from "../src/parser.ts"
 
-const content = readFileSync("test/dsl.tse", "utf-8")
-
-const bars = parseTse(content)
-console.log(`Parsed ${bars.length} bars, ${bars.flat().length} chords`)
+Deno.test({name: "parse without throwing", fn() {
+  parseTseFile("test/dsl.tse")
+}})

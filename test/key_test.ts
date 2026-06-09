@@ -1,7 +1,7 @@
-import { GenericNoteName, KeyMode, notesInKey } from "../src/key.ts"
+import { GenericNoteName, isInKey, Key, KeyMode, notesInKey } from "../src/key.ts"
 
 import { assertEquals } from "@std/assert"
-import { parseGenericNoteName } from "../index.ts"
+import { NoteName, parseGenericNoteName } from "../index.ts"
 
 function mustParseGenericNoteName(s: string): GenericNoteName {
   const n = parseGenericNoteName(s)
@@ -15,7 +15,7 @@ function mustParseGenericNoteName(s: string): GenericNoteName {
 const m = mustParseGenericNoteName
 
 Deno.test({
-  name: "key",
+  name: "notesInKey",
   fn() {
     type test = {
       tonic: string
@@ -38,6 +38,20 @@ Deno.test({
           m("f"),
         ],
       },
+      {
+        tonic: "gb",
+        mode: KeyMode.major,
+        expected: [
+          m("gb"),
+          m("ab"),
+          m("bb"),
+          m("cb"),
+          m("db"),
+          m("eb"),
+          m("f"),
+          m("gb"),
+        ],
+      },
     ]
 
     for (const t of tests) {
@@ -46,6 +60,45 @@ Deno.test({
         mode: t.mode,
       }
       const got = notesInKey(key)
+      assertEquals(got, t.expected)
+    }
+  },
+})
+
+Deno.test({
+  name: "isInKey",
+  fn() {
+    type test = {
+      input: GenericNoteName
+      key: Key
+      expected: boolean
+    }
+
+    const tests: test[] = [
+      {
+        input: m("eb"),
+        key: {
+          tonic: m("gb"),
+          mode: KeyMode.major,
+        },
+        expected: true,
+      },
+      {
+        input: {
+          letter: "e",
+          accidental: "b",
+          octave: 6,
+        } as NoteName,
+        key: {
+          tonic: m("gb"),
+          mode: KeyMode.major,
+        },
+        expected: true,
+      },
+    ]
+
+    for (const t of tests) {
+      const got = isInKey(t.input, t.key)
       assertEquals(got, t.expected)
     }
   },

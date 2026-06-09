@@ -5,7 +5,7 @@ import { notes } from "./generated_notes.ts"
 import { parse as parseYaml } from "@std/yaml"
 
 import { mustParseNoteName, semitoneDownFrom } from "./notes.ts"
-import { Key } from "./key.ts"
+import { Key, keyModeFromString } from "./key.ts"
 
 export type SubBarDef = {
   // Number of iotas in sub-bar.
@@ -61,7 +61,9 @@ function parseHeader(
       }
 
       inMeta = false
+      // TODO: separate model for tse so it's terser/prettier
       meta = parseYaml(lines.slice(0, numHeaderLines).join("\n")) as HeaderMeta // TODO: validate
+      meta.key.mode = keyModeFromString(meta.key.mode as unknown as string) // TODO: this is nasty
       continue
     }
 

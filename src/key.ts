@@ -12,6 +12,20 @@ export enum KeyMode {
   minor,
 }
 
+export function keyModeFromString(s: string): KeyMode {
+  switch (s) {
+    case "major": {
+      return KeyMode.major
+    }
+    case "minor": {
+      return KeyMode.minor
+    }
+    default: {
+      throw `unknown keyMode: ${s}`
+    }
+  }
+}
+
 export function keyModeToOffsets(m: KeyMode): number[] {
   switch (m) {
     case KeyMode.major: {
@@ -26,7 +40,19 @@ export function keyModeToOffsets(m: KeyMode): number[] {
   }
 }
 
+export function isInKey(note: GenericNoteName, key: Key): boolean {
+  const nik = notesInKey(key)
+  for (const _note of nik) {
+    if (note.letter === _note.letter && note.accidental === _note.accidental) {
+      return true
+    }
+  }
+  return false
+}
+
 export function notesInKey(key: Key): GenericNoteName[] {
+  // TODO: memoize
+
   const ret: GenericNoteName[] = [key.tonic]
 
   let prevNote = key.tonic

@@ -17,7 +17,7 @@ function App(props: AppProps) {
     <div class="flex grow flex-col min-w-full min-h-screen">
       <${Navbar} />
       <main class="flex grow flex-col items-center justify-center min-w-full min-h-full overflow-x-hidden">
-        <${Sequencer} tse=${props.tse} />
+        <${Sequencer} tse="${props.tse}" />
       </main>
     </div>
   `
@@ -33,7 +33,7 @@ async function main() {
 
   render(
     html`
-      <${App} tse=${tse} />
+      <${App} tse="${tse}" />
     `,
     document.body,
   )

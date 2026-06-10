@@ -13,10 +13,9 @@ export async function run(builder: Builder): Promise<void> {
     .action((options) => {
       const csdText = builder.render()
       // TODO: write .csd to a temp file.
-      Deno.writeTextFileSync("gen.csd", csdText);
-      // TODO: only use .exe on windows, and allow overriding.
-      // execFileSync("csound.exe", ["gen.csd", "-o", options.output])
-      (new Deno.Command("csound.exe", {args: ["gen.csd", "-o", options.output]})).outputSync()
+      Deno.writeTextFileSync("gen.csd", csdText) // TODO: only use .exe on windows, and allow overriding.
+       // execFileSync("csound.exe", ["gen.csd", "-o", options.output])
+      ;(new Deno.Command("csound.exe", { args: ["gen.csd", "-o", options.output] })).outputSync()
     })
     .parse(Deno.args)
 }

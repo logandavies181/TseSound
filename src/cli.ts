@@ -1,7 +1,5 @@
 import { Command } from "@cliffy/command"
 import { Builder } from "./builders.ts"
-import { writeFileSync } from "node:fs"
-import { execFileSync } from "node:child_process"
 
 export async function run(builder: Builder): Promise<void> {
   await new Command()
@@ -15,9 +13,10 @@ export async function run(builder: Builder): Promise<void> {
     .action((options) => {
       const csdText = builder.render()
       // TODO: write .csd to a temp file.
-      writeFileSync("gen.csd", csdText)
+      Deno.writeTextFileSync("gen.csd", csdText);
       // TODO: only use .exe on windows, and allow overriding.
-      execFileSync("csound.exe", ["gen.csd", "-o", options.output])
+      // execFileSync("csound.exe", ["gen.csd", "-o", options.output])
+      (new Deno.Command("csound.exe", {args: ["gen.csd", "-o", options.output]})).outputSync()
     })
     .parse(Deno.args)
 }

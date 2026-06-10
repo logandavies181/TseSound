@@ -1,31 +1,25 @@
-import { useEffect, useState } from "preact/hooks"
+import { useState } from "preact/hooks"
 
 import { html } from "../src/html.ts"
 import { colours } from "../src/colours.ts"
-import { ParsedRow } from "../../src/parser.ts"
-import { isBlackNote, NoteName } from "../../src/notes.ts"
-import { initializeState, pipStates, PipType, subscribe, togglePipState } from "../src/state.ts"
+import { NoteName } from "../../src/notes.ts"
+import { pipStates, PipType, subscribe, togglePipState } from "../src/state.ts"
 import { TseFile } from "../../index.ts"
+import { isInKey, isTonic } from "../../src/key.ts"
 
-export function Sequencer() {
-  const [rows, setRows] = useState<ParsedRow[]>([])
+export type SequencerProps = {
+  tse: TseFile
+}
 
-  useEffect(() => {
-    ;(async () => {
-      const res = await callParseTseFile()
-      const tse = await JSON.parse(res) as TseFile
-      initializeState(tse)
-      setRows(tse.rows)
-    })()
-  }, [])
-
+export function Sequencer(props: SequencerProps) {
+  console.log(props.tse.header.meta.key)
   return html`
     <div class="flex flex-col min-h-[50%] min-w-full overflow-x-clip overflow-y-clip">
       <div class="flex flex-col overflow-x-scroll min-w-full bg-green-800">
         <div class="flex flex-col min-w-full">
-          ${rows.map((row, idx) =>
+          ${props.tse.rows.map((row, idx) =>
             html`
-              <${SeqRow} rowIndex="${idx}" noteName="${row.noteName}" />
+              <${SeqRow} rowIndex="${idx}" noteName="${row.noteName}" tse="${props.tse}" />
             `
           )}
         </div>
@@ -37,12 +31,19 @@ export function Sequencer() {
 export type SeqRowProps = {
   rowIndex: number
   noteName: NoteName
+  tse: TseFile
 }
 
 export function SeqRow(props: SeqRowProps) {
   const _pipStates = pipStates[props.rowIndex]
+  const key = props.tse.header.meta.key
 
-  const noteRowBackgroundColour = isBlackNote(props.noteName) ? "bg-green-800" : "bg-green-600"
+  let noteRowBackgroundColour: string
+  if (isTonic(props.noteName, key)) {
+    noteRowBackgroundColour = "bg-green-900"
+  } else {
+    noteRowBackgroundColour = isInKey(props.noteName, props.tse.header.meta.key) ? "bg-green-800" : "bg-green-600"
+  }
 
   return html`
     <div class="flex flex-row justify-start h-auto max-w-screen min-w-full ${noteRowBackgroundColour}">

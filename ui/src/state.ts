@@ -57,6 +57,13 @@ function formatPipType(p: PipType): string {
   }
 }
 
+globalThis.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.key === "s") {
+    e.preventDefault()
+    updateTseFile()
+  }
+})
+
 export function updateTseFile() {
   pipStates.forEach((pipStateRow, i) => {
     const patterns: string[] = []
@@ -80,8 +87,6 @@ export function updateTseFile() {
   boundUpdateTseFile(JSON.stringify(_tseFile))
 }
 
-// @ts-ignore
-globalThis.UPDATETSEFILE = updateTseFile
 
 type Callback = (ps: PipState) => void
 

@@ -40,6 +40,10 @@ export function keyModeToOffsets(m: KeyMode): number[] {
   }
 }
 
+export function isTonic(note: GenericNoteName, key: Key): boolean {
+  return note.letter === key.tonic.letter && note.accidental === key.tonic.accidental
+}
+
 export function isInKey(note: GenericNoteName, key: Key): boolean {
   const nik = notesInKey(key)
   for (const _note of nik) {

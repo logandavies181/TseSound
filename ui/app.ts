@@ -5,24 +5,35 @@ import { Navbar } from "./components/navbar.ts"
 import { Sequencer } from "./components/sequencer.ts"
 
 import "./src/drag.ts"
+import { initializeState } from "./src/state.ts"
+import { TseFile } from "../index.ts"
 
-function App() {
+type AppProps = {
+  tse: TseFile
+}
+
+function App(props: AppProps) {
   return html`
     <div class="flex grow flex-col min-w-full min-h-screen">
       <${Navbar} />
       <main class="flex grow flex-col items-center justify-center min-w-full min-h-full overflow-x-hidden">
-        <${Sequencer} />
+        <${Sequencer} tse=${props.tse} />
       </main>
     </div>
   `
 }
 
-function main() {
+async function main() {
   document.body.innerHTML = ""
   document.addEventListener("contextmenu", (e) => e.stopPropagation(), true)
+
+  const res = await callParseTseFile()
+  const tse = await JSON.parse(res) as TseFile
+  initializeState(tse)
+
   render(
     html`
-      <${App} />
+      <${App} tse=${tse} />
     `,
     document.body,
   )

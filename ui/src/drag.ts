@@ -1,4 +1,4 @@
-import { PipState, pipStates, publish } from "./state.ts"
+import { PipState, pipStates, PipType, publish } from "./state.ts"
 
 enum EventType {
   normal,
@@ -83,6 +83,9 @@ function handleShiftDrag() {
   const elems = document.querySelectorAll(".tse-selectable")
   for (const elem of elems) {
     const [before, row, column] = elemToPipState(elem)
+    if (before.type !== PipType.ringing && before.type !== PipType.starting) {
+      continue
+    }
 
     const rect = elem.getBoundingClientRect()
     const xMid = rect.left + rect.width / 2

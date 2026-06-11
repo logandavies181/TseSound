@@ -1,4 +1,4 @@
-import { pipStates, publish } from "./state.ts"
+import { PipState, pipStates, publish } from "./state.ts"
 
 enum EventType {
   normal,
@@ -82,9 +82,7 @@ function handleNormalDrag() {
 function handleShiftDrag() {
   const elems = document.querySelectorAll(".tse-selectable")
   for (const elem of elems) {
-    const row = parseInt(elem.getAttribute("data-row")!)
-    const column = parseInt(elem.getAttribute("data-column")!)
-    const before = pipStates[row][column]
+    const [before, row, column] = elemToPipState(elem)
 
     const rect = elem.getBoundingClientRect()
     const xMid = rect.left + rect.width / 2
@@ -106,12 +104,30 @@ function handleShiftDrag() {
   }
 }
 
-function unselectAll() {
+export function getAllSelected(): Element[] {
+  const ret = []
   const elems = document.querySelectorAll(".tse-selectable")
   for (const elem of elems) {
-    const row = parseInt(elem.getAttribute("data-row")!)
-    const column = parseInt(elem.getAttribute("data-column")!)
-    const before = pipStates[row][column]
+    const [before] = elemToPipState(elem)
+    if (before.selected) {
+      ret.push(elem)
+    }
+  }
+
+  return ret
+}
+
+export function elemToPipState(elem: Element): [PipState, number, number] {
+  const row = parseInt(elem.getAttribute("data-row")!)
+  const column = parseInt(elem.getAttribute("data-column")!)
+  const pipState = pipStates[row][column]
+  return [pipState, row, column]
+}
+
+function unselectAll() {
+  const elems = getAllSelected()
+  for (const elem of elems) {
+    const [before, row, column] = elemToPipState(elem)
     before.selected = false
 
     publish(row, column, before)

@@ -5,6 +5,7 @@ import { Navbar } from "./components/navbar.ts"
 import { Sequencer } from "./components/sequencer.ts"
 
 import "./src/drag.ts"
+import "./src/shift.ts"
 import { initializeState } from "./src/state.ts"
 import { TseFile } from "../index.ts"
 

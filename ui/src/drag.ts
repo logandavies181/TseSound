@@ -127,7 +127,7 @@ export function elemToPipState(elem: Element): [PipState, number, number] {
   return [pipState, row, column]
 }
 
-function unselectAll() {
+export function unselectAll() {
   const elems = getAllSelected()
   for (const elem of elems) {
     const [before, row, column] = elemToPipState(elem)

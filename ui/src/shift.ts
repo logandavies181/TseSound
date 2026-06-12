@@ -1,4 +1,4 @@
-import { elemToPipState, getAllSelected } from "./drag.ts"
+import { elemToPipState, getAllSelected, unselectAll } from "./drag.ts"
 import { pipStates, PipType, publish } from "./state.ts"
 
 enum Direction {
@@ -30,7 +30,7 @@ function keyboardToDirection(keyboard: string): Direction | null {
 
 document.addEventListener("keydown", (e) => {
   const direction = keyboardToDirection(e.key)
-  if (direction === null) {
+  if (direction === null || !e.ctrlKey) {
     return
   }
 
@@ -42,6 +42,8 @@ document.addEventListener("keydown", (e) => {
   const elems = getAllSelected().filter((elem) => {
     return elemToPipState(elem)[0].type === PipType.starting
   })
+
+  unselectAll()
 
   const elemLengths: ElemLength[] = []
   for (const elem of elems) {
@@ -67,6 +69,10 @@ document.addEventListener("keydown", (e) => {
         }
         case PipType.ringing: {
           length++
+          publish(row, column + offset, {
+            selected: false,
+            type: PipType.off,
+          })
           break
         }
         default: {
@@ -81,9 +87,11 @@ document.addEventListener("keydown", (e) => {
   }
 
   for (const elem of elems) {
-    const [ps, row, column] = elemToPipState(elem)
-    ps.selected = false
-    publish(row, column, ps)
+    const [_, row, column] = elemToPipState(elem)
+    publish(row, column, {
+      selected: false,
+      type: PipType.off,
+    })
   }
 
   const directionToRowColDiff = (d: Direction): [number, number] => {
@@ -105,33 +113,55 @@ document.addEventListener("keydown", (e) => {
 
   for (const el of elemLengths) {
     const [diffRow, diffCol] = directionToRowColDiff(direction)
-    const [ps, oldRow, oldCol] = elemToPipState(el.elem)
-    const newRow = oldRow + diffRow
-    const newCol = oldCol + diffCol
-    publish(newRow, newCol, ps)
+    const [_, oldRow, oldCol] = elemToPipState(el.elem)
+    let newRow = oldRow + diffRow
+    let newCol = oldCol + diffCol
 
-    let length = el.length
+    loop: while (true) {
+      const next = pipStates[newRow][newCol]
+      // TODO: undefined check
+      switch (next.type) {
+        case PipType.barDivider:
+        case PipType.lparen:
+        case PipType.rparen: {
+          newRow += diffRow
+          newCol += diffCol
+          continue
+        }
+        default:
+          break loop
+      }
+    }
+
+    publish(newRow, newCol, {
+      selected: true,
+      type: PipType.starting,
+    })
+
+    let len = el.length
     let offset = 0
-    loop: while (el.length > 0) {
+    loop: while (len > 0) {
       offset++
       const next = pipStates[newRow][newCol + offset]
       if (next === undefined) {
+        console.warn("undefined next shift")
         break loop
       }
 
       switch (next.type) {
-        case PipType.off:
-        case PipType.starting: {
-          break loop
-        }
         case PipType.barDivider:
         case PipType.lparen:
         case PipType.rparen: {
           continue
         }
+        case PipType.off:
+        case PipType.starting:
         case PipType.ringing: {
-          length--
-          publish(newRow, newCol + offset, next)
+          len--
+          publish(newRow, newCol + offset, {
+            selected: true,
+            type: PipType.ringing,
+          })
           break
         }
         default: {

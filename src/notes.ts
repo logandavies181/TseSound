@@ -76,19 +76,6 @@ export function parseGenericNoteName(name: string): GenericNoteName | null {
   }
 }
 
-export function noteNameStringToKey(name: string): string {
-  const parsed = parseNoteName(name)
-  if (!parsed) {
-    throw new Error(`Invalid note name: ${name}`)
-  }
-
-  const letter = parsed.letter.toLowerCase()
-  const accidental = parsed.accidental ? parsed.accidental === "s" ? "s" : "b" : ""
-  const octave = parsed.octave
-
-  return `${letter}${accidental}${octave}`
-}
-
 const LETTER_TO_SEMITONE: Record<string, number> = {
   c: 0,
   d: 2,

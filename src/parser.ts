@@ -1,5 +1,5 @@
 import { Chord, n, r } from "./score.ts"
-import { NoteName, parseNoteName, printNoteName, semitoneDifference } from "../index.ts"
+import { NoteName, parseGenericNoteName, parseNoteName, printNoteName, semitoneDifference } from "../index.ts"
 import { notes } from "./generated_notes.ts"
 
 import { parse as parseYaml } from "@std/yaml"
@@ -63,7 +63,10 @@ function parseHeader(
       inMeta = false
       // TODO: separate model for tse so it's terser/prettier
       meta = parseYaml(lines.slice(0, numHeaderLines).join("\n")) as HeaderMeta // TODO: validate
-      meta.key.mode = keyModeFromString(meta.key.mode as unknown as string) // TODO: this is nasty
+      // TODO: this is nasty
+      const tonic = parseGenericNoteName(meta.key.tonic as unknown as string)
+      meta.key.tonic = tonic!
+      meta.key.mode = keyModeFromString(meta.key.mode as unknown as string)
       continue
     }
 

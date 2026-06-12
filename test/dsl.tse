@@ -1,7 +1,5 @@
 key:
-  tonic:
-    letter: g
-    accidental: b
+  tonic: gb
   mode: major
 iotaCount: 32
 timeSignature: 4

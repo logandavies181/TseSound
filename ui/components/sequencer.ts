@@ -3,7 +3,7 @@ import { useState } from "preact/hooks"
 import { html } from "../src/html.ts"
 import { colours } from "../src/colours.ts"
 import { NoteName } from "../../src/notes.ts"
-import { pipStates, PipType, subscribe, togglePipState } from "../src/state.ts"
+import { _tseFile, pipStates, PipType, subscribe, togglePipState } from "../src/state.ts"
 import { TseFile } from "../../index.ts"
 import { isInKey, isTonic } from "../../src/key.ts"
 
@@ -36,19 +36,20 @@ export type SeqRowProps = {
 
 export function SeqRow(props: SeqRowProps) {
   const _pipStates = pipStates[props.rowIndex]
-  const key = props.tse.header.meta.key
+  // const key = props.tse.header.meta.key
 
-  let noteRowBackgroundColour: string
-  if (isTonic(props.noteName, key)) {
-    noteRowBackgroundColour = "bg-green-900"
-  } else {
-    noteRowBackgroundColour = isInKey(props.noteName, props.tse.header.meta.key) ? "bg-green-800" : "bg-green-600"
-  }
+  const noteRowBackgroundColour: string = "bg-green-800"
+  // if (isTonic(props.noteName, key)) {
+  //   noteRowBackgroundColour = "bg-green-900"
+  // } else {
+  //   noteRowBackgroundColour = isInKey(props.noteName, props.tse.header.meta.key) ? "bg-green-800" : "bg-green-600"
+  // }
 
   return html`
     <div class="flex flex-row justify-start h-auto max-w-screen min-w-full ${noteRowBackgroundColour}">
       <div class="flex max-w-3 min-w-3 w-3 min-h-1 h-1"></div>
       ${_pipStates.map((pipState, idx) => {
+        _pipCount = 0
         return html`
           <${Pip} state="${pipState.type}" row="${props.rowIndex}" index="${idx}" />
         `
@@ -67,9 +68,18 @@ export type PipProps = {
   state: PipType
 }
 
+let _isInSubBar = false
+let _pipCount = 0
+
 export function Pip(props: PipProps) {
   const [pipType, setPipType] = useState<PipType>(props.state)
   const [selected, setSelected] = useState<boolean>(false)
+  const [isInSubBar, _] = useState<boolean>(_isInSubBar)
+
+  const meta = _tseFile!.header.meta
+  const iotasPerBeat = meta.iotaCount / meta.timeSignature
+
+  const isLightBar = (_pipCount / iotasPerBeat | 0) % 2 === 0
 
   subscribe(props.row, props.index, (pipState) => {
     setSelected(pipState.selected)
@@ -82,6 +92,7 @@ export function Pip(props: PipProps) {
 
   if (pipType >= PipType.lparen) {
     const flexX = pipType === PipType.lparen ? "0" : "10"
+    _isInSubBar = pipType === PipType.lparen ? true : false
 
     return html`
       <div class="min-w-3 max-w-[5%] max-h-[100%]">
@@ -117,9 +128,12 @@ export function Pip(props: PipProps) {
     pipColour = pipStateToColour(pipType)
   }
 
+  _pipCount++
+  const bg = isLightBar ? "bg-green-800" : "bg-green-600"
+
   return html`
     <div
-      class="tse-selectable flex min-w-3 max-w-[8%] min-h-[80%]"
+      class="tse-selectable flex min-w-3 max-w-[8%] min-h-[80%] ${bg}"
       onClick="${onClick}"
       data-row="${props.row}"
       data-column="${props.index}"

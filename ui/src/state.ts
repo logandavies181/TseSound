@@ -1,6 +1,6 @@
 import { TseFile } from "../../index.ts"
 
-let _tseFile: TseFile | undefined = undefined
+export let _tseFile: TseFile | undefined = undefined
 
 export function initializeState(tseFile: TseFile) {
   _tseFile = tseFile

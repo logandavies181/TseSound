@@ -136,8 +136,12 @@ export function togglePipState(row: number, column: number): PipType {
     newPipType = (beforeType + 1) % 3 as PipType
   }
 
+  let selected = before.selected
+  if (newPipType === PipType.off) {
+    selected = false
+  }
   publish(row, column, {
-    selected: before.selected,
+    selected: selected,
     type: newPipType,
   })
 

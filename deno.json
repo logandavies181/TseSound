@@ -1,6 +1,8 @@
 {
+  "name": "@logandavies181/TseSound",
+  "version": "0.1.0",
+  "exports": "./index.ts",
   "tasks": {
-    "dev": "deno run --watch main.ts",
     "ui": "scripts/ui.sh",
     "ui-win": "scripts/ui-win.sh"
   },

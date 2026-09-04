@@ -1,5 +1,5 @@
 {
-  "name": "@logandavies181/TseSound",
+  "name": "@logandavies181/tsesound",
   "version": "0.1.0",
   "exports": "./index.ts",
   "tasks": {

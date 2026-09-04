@@ -88,6 +88,10 @@ export class Pitch {
     ret.frequency = frequency
     return ret
   }
+
+  clone(): Pitch {
+    return Pitch.fromFrequency(this.frequency)
+  }
 }
 
 export class Bar {

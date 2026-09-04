@@ -412,9 +412,15 @@ export class Builder {
     this.pushChords(bar, instrumentName, repeatedChords, amplitude)
   }
 
-  renderScoreLines(): string[] {
+  renderScoreLines(fromBar = 0): string[] {
+    if (!Number.isInteger(fromBar) || fromBar < 0) {
+      throw new Error(`Invalid fromBar: ${fromBar}. Must be a non-negative integer.`)
+    }
+    if (this.bars.length > 0 && fromBar >= this.bars.length) {
+      throw new Error(`Invalid fromBar: ${fromBar}. Exceeds number of bars (${this.bars.length}).`)
+    }
     let time = 0
-    const ret = this.bars.map((itm) => {
+    const ret = this.bars.slice(fromBar).map((itm) => {
       const line = itm.render(time)
       time += itm.barDuration()
       return line
@@ -425,9 +431,13 @@ export class Builder {
     return ret
   }
 
-  render(): string {
+  getNumBars(): number {
+    return this.bars.length
+  }
+
+  render(fromBar = 0): string {
     const { instruments, reverbInstruments } = this.renderInstruments()
-    const scoreLines = this.renderScoreLines()
+    const scoreLines = this.renderScoreLines(fromBar)
     const allInstruments = [...instruments, ...reverbInstruments]
 
     return `<CsoundSynthesizer>

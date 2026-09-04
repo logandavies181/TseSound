@@ -1,11 +1,11 @@
-import { Chord, n, r } from "./score.ts"
-import { NoteName, parseGenericNoteName, parseNoteName, printNoteName, semitoneDifference } from "../index.ts"
+import { type Chord, n, Pitch, r } from "./score.ts"
+import { type NoteName, parseGenericNoteName, parseNoteName, printNoteName, semitoneDifference } from "../index.ts"
 import { notes } from "./generated_notes.ts"
 
 import { parse as parseYaml } from "@std/yaml"
 
 import { mustParseNoteName, semitoneDownFrom } from "./notes.ts"
-import { Key, keyModeFromString } from "./key.ts"
+import { type Key, keyModeFromString } from "./key.ts"
 
 export type SubBarDef = {
   // Number of iotas in sub-bar.
@@ -146,7 +146,7 @@ function patternsToChords(
     if (isRest) {
       ret.push(r(len))
     } else {
-      ret.push(n({ frequency: pitch.frequency, pitch: "" }, len, 1))
+      ret.push(n(Pitch.fromFrequency(pitch.frequency), len, 1))
     }
   }
 

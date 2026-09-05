@@ -1,6 +1,7 @@
 *.csd
 *.exe
 dist
+node_modules
 
 ui/app.js
 ui/output.css

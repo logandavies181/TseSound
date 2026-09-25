@@ -1,6 +1,8 @@
 import { type Chord, n, Pitch, r } from "./score.ts"
 import { type NoteName, parseGenericNoteName, parseNoteName, printNoteName, semitoneDifference } from "../index.ts"
-import { notes } from "./generated_notes.ts"
+
+// TODO: hardcoding A440
+import { notes } from "../gen/notes440.ts"
 
 import { parse as parseYaml } from "@std/yaml"
 

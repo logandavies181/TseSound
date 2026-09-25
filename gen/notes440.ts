@@ -1,4 +1,4 @@
-import { Pitch } from "./score.ts"
+import { Pitch } from "../src/score.ts"
 
 export const notes = {
   cb0: Pitch.fromFrequency(15.43),

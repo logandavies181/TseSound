@@ -1,5 +1,5 @@
 import { Command } from "@cliffy/command"
-import { Builder } from "./builders.ts"
+import type { Builder } from "./builders.ts"
 
 export async function run(builder: Builder): Promise<void> {
   await new Command()
@@ -14,9 +14,7 @@ export async function run(builder: Builder): Promise<void> {
       },
     )
     .command("perform", "Render CSound code and immediately perform it.")
-    .option("-o, --output <val:string>", "Output file", {
-      default: "dac",
-    })
+    .option("-o, --output <val:string>", "Output file")
     .option(
       "--from-bar <bar:number>",
       "Bar to start from (0-indexed)",
@@ -27,10 +25,15 @@ export async function run(builder: Builder): Promise<void> {
     .action((options) => {
       const fromBar = (options.fromBar as number) ?? 0
       const csdText = builder.render(fromBar)
-      // TODO: write .csd to a temp file.
-      Deno.writeTextFileSync("gen.csd", csdText) // TODO: only use .exe on windows, and allow overriding.
-       // execFileSync("csound.exe", ["gen.csd", "-o", options.output])
-      ;(new Deno.Command("csound.exe", { args: ["gen.csd", "-o", options.output] })).outputSync()
+      const csdPath = Deno.makeTempFileSync({ suffix: ".csd" })
+
+      try {
+        Deno.writeTextFileSync(csdPath, csdText)
+        const output = (options.output as string | undefined) ?? "dac"
+        new Deno.Command("csound.exe", { args: [csdPath, "-o", output] }).outputSync()
+      } finally {
+        Deno.removeSync(csdPath)
+      }
     })
     .parse(Deno.args)
 }

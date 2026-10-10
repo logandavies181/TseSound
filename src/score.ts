@@ -1,6 +1,6 @@
 export class ScoreLine {
   constructor(
-    public instrumentIdx: number,
+    public instrumentIdx: number | string,
     public note: Note,
     public startOffset: number,
     public amplitude: number = 0.5,
@@ -107,7 +107,8 @@ export class Bar {
     const noteSpeed = this.noteSpeed()
     return this.contents
       .map((itm) => {
-        return `i${itm.instrumentIdx} ${itm.startOffset * noteSpeed + startTime} ${
+        const instrument = typeof itm.instrumentIdx === "number" ? `i${itm.instrumentIdx}` : `i "${itm.instrumentIdx}"`
+        return `${instrument} ${itm.startOffset * noteSpeed + startTime} ${
           itm.playLength() * noteSpeed
         } ${itm.note.pitch.frequency} ${itm.amplitude} ${itm.args.join(" ")}`
       })

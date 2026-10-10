@@ -1,46 +1,49 @@
-import { Instrument } from "./csound.ts"
 import { Bar, Chord, ScoreLine } from "./score.ts"
 
-type InstrumentInfo = {
-  startIdx: number
-  numVoices: number
+export type OrcRenderer = (source: string) => string
+
+export const renderHelloWorld: OrcRenderer = (source) => source.replaceAll("TSE_HELLO", 'prints "Hello world"')
+
+type OrcInstrument = {
+  name: string
+  source: string
 }
 
 export class BuilderV2 {
-  private instruments: Instrument[] = []
+  private instruments: OrcInstrument[] = []
   private bars: Bar[] = []
-  private nextIdx = 1
-  private instrumentInfo: Map<string, InstrumentInfo> = new Map()
+  private instrumentInfo: Set<string> = new Set()
+  private orcRenderers: OrcRenderer[] = [renderHelloWorld]
 
-  addInstrument(name: string, orcPath: string): this {
+  addOrcRenderer(renderer: OrcRenderer): this {
+    this.orcRenderers.push(renderer)
+    return this
+  }
+
+  addInstrument(name: string): this {
     if (this.instrumentInfo.has(name)) {
       throw new Error(`Instrument with name ${name} already added.`)
     }
 
-    const source = Deno.readTextFileSync(orcPath)
-    const declarations = [...source.matchAll(/^\s*instr\s+\d+\b/gm)]
-    if (declarations.length !== 1) {
+    const filename = `${name}.orc`
+    const source = Deno.readTextFileSync(filename)
+    const declarations = [...source.matchAll(/^\s*instr\s+([A-Za-z_]\w*)\s*$/gm)]
+    if (declarations.length !== 1 || declarations[0][1] !== name) {
       throw new Error(
-        `Expected exactly one instrument declaration in ORC file for "${name}", found ${declarations.length}`,
+        `Expected ORC file "${filename}" to declare exactly one instrument named "${name}"`,
       )
     }
 
-    const idx = this.nextIdx++
-    const code = source.replace(
-      /^(\s*instr\s+)\d+\b/m,
-      (_match, prefix: string) => `${prefix}${idx}`,
-    )
-    this.instrumentInfo.set(name, { startIdx: idx, numVoices: 1 })
-    this.instruments.push({ idx, code })
+    this.instrumentInfo.add(name)
+    this.instruments.push({ name, source })
     return this
   }
 
-  private getInstrumentInfo(name: string): InstrumentInfo {
-    const info = this.instrumentInfo.get(name)
-    if (!info) {
+  private getInstrumentName(name: string): string {
+    if (!this.instrumentInfo.has(name)) {
       throw new Error(`Instrument "${name}" not found`)
     }
-    return info
+    return name
   }
 
   addBars(bpm: number, timeSignature: number, n: number): void {
@@ -66,22 +69,16 @@ export class BuilderV2 {
       return
     }
 
-    const { startIdx, numVoices } = this.getInstrumentInfo(instrumentName)
+    const instrument = this.getInstrumentName(instrumentName)
     let currBar = bar
     let offset = 0
     for (const chord of chords) {
       for (let i = 0; i < chord.pitches.length; i++) {
         const pitch = chord.pitches[i]
         const duration = chord.duration
-        for (
-          let voiceIdx = startIdx;
-          voiceIdx < startIdx + numVoices;
-          voiceIdx++
-        ) {
-          this.bars[currBar].contents.push(
-            new ScoreLine(voiceIdx, { pitch, duration }, offset, amplitude),
-          )
-        }
+        this.bars[currBar].contents.push(
+          new ScoreLine(instrument, { pitch, duration }, offset, amplitude),
+        )
       }
       offset += chord.duration.noteLength
 
@@ -138,6 +135,20 @@ export class BuilderV2 {
 
   render(fromBar = 0): string {
     const scoreLines = this.renderScoreLines(fromBar)
+    const instruments = this.instruments.map((instrument) => {
+      const source = this.orcRenderers.reduce(
+        (data, renderer) => renderer(data),
+        instrument.source,
+      )
+      const declarations = [...source.matchAll(/^\s*instr\s+([A-Za-z_]\w*)\s*$/gm)]
+      if (declarations.length !== 1 || declarations[0][1] !== instrument.name) {
+        throw new Error(
+          `Expected ORC renderer output for "${instrument.name}" to retain exactly one matching instrument declaration`,
+        )
+      }
+      return source
+    })
+
     return `<CsoundSynthesizer>
 <CsOptions>
 </CsOptions>
@@ -147,7 +158,7 @@ ksmps  = 128
 0dbfs  = 1
 nchnls = 2
 
-${this.instruments.map((instrument) => instrument.code).join("\n")}
+${instruments.join("\n")}
 </CsInstruments>
 <CsScore>
 

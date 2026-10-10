@@ -13,6 +13,20 @@ export async function run(builder: Builder): Promise<void> {
         default: 0,
       },
     )
+    .command("display", "Display the generated Csound file.")
+    .option(
+      "--from-bar <bar:number>",
+      "Bar to start from (0-indexed)",
+      {
+        default: 0,
+      },
+    )
+    .action((options) => {
+      const fromBar = (options.fromBar as number) ?? 0
+      const csdText = builder.render(fromBar)
+      Deno.stdout.writeSync(new TextEncoder().encode(csdText))
+    })
+    .reset()
     .command("perform", "Render CSound code and immediately perform it.")
     .option("-o, --output <val:string>", "Output file")
     .option(

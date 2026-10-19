@@ -18,12 +18,15 @@ Deno.test("BuilderV2 loads and renders a named ORC fixture", () => {
   builder.pushChords(0, "lead", [n(Pitch.fromFrequency(440), 1)])
   builder.addOrcRenderer((source) => {
     renderCount++
-    return source.replaceAll("TSE_PAN", "pan = 0.25")
+    return source
+      .replaceAll("TSE_PAN", "pan = 0.25")
+      .replace("endin", "  TSE_HELLO\nendin")
   })
 
   const csd = builder.render()
   assertEquals(renderCount, 1)
   assertStringIncludes(csd, 'instr lead\n  prints "Hello world"\n  pan = 0.25\n')
+  assertStringIncludes(csd, '  outs 0, 0\n  prints "Hello world"\nendin')
   assertStringIncludes(csd, 'i "lead" 0 0.8 440 0.5')
 
   builder.render()

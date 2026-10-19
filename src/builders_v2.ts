@@ -1,19 +1,11 @@
-import { Bar, Chord, ScoreLine } from "./score.ts"
-
-export type OrcRenderer = (source: string) => string
-
-export const renderHelloWorld: OrcRenderer = (source) => source.replaceAll("TSE_HELLO", 'prints "Hello world"')
-
-type OrcInstrument = {
-  name: string
-  source: string
-}
+import { defaultOrcRenderers, type OrcInstrument, type OrcRenderer } from "./orc_renderers.ts"
+import { Bar, type Chord, ScoreLine } from "./score.ts"
 
 export class BuilderV2 {
   private instruments: OrcInstrument[] = []
   private bars: Bar[] = []
   private instrumentInfo: Set<string> = new Set()
-  private orcRenderers: OrcRenderer[] = [renderHelloWorld]
+  private orcRenderers: OrcRenderer[] = []
 
   addOrcRenderer(renderer: OrcRenderer): this {
     this.orcRenderers.push(renderer)
@@ -110,7 +102,7 @@ export class BuilderV2 {
     this.pushChords(bar, instrumentName, repeatedChords, amplitude)
   }
 
-  renderScoreLines(fromBar = 0): string[] {
+  renderScoreLines(reverbInstrumentNames: string[], fromBar = 0): string[] {
     if (!Number.isInteger(fromBar) || fromBar < 0) {
       throw new Error(
         `Invalid fromBar: ${fromBar}. Must be a non-negative integer.`,
@@ -122,24 +114,48 @@ export class BuilderV2 {
       )
     }
     let time = 0
-    return this.bars.slice(fromBar).map((bar) => {
+    const ret = this.bars.slice(fromBar).map((bar) => {
       const line = bar.render(time)
       time += bar.barDuration()
       return line
     })
+    for (const iname of reverbInstrumentNames) {
+      ret.push(`i"${iname}_reverb" 0 ${time}`)
+    }
+    return ret
   }
 
   getNumBars(): number {
     return this.bars.length
   }
 
+  renderReverb(instrument: OrcInstrument): string {
+    // TODO: make hardcoded value configurable
+    return `instr ${instrument.name}_reverb
+
+  arevL reverb ga${instrument.name}L, 1.5
+  arevR reverb ga${instrument.name}R, 1.5
+  outs arevL, arevR
+
+  ga${instrument.name}L  = 0
+  ga${instrument.name}R  = 0
+endin
+`
+  }
+
   render(fromBar = 0): string {
-    const scoreLines = this.renderScoreLines(fromBar)
+    const reverbInstrumentNames: string[] = []
+    const reverbInstruments: string[] = []
     const instruments = this.instruments.map((instrument) => {
-      const source = this.orcRenderers.reduce(
-        (data, renderer) => renderer(data),
+      const source = [...this.orcRenderers, ...defaultOrcRenderers].reduce(
+        (data, renderer) => renderer(data, instrument),
         instrument.source,
       )
+      if (source.match(/TSE_REVERB/gm)) {
+        // TODO: messy
+        reverbInstrumentNames.push(instrument.name)
+        reverbInstruments.push(this.renderReverb(instrument))
+      }
       const declarations = [...source.matchAll(/^\s*instr\s+([A-Za-z_]\w*)\s*$/gm)]
       if (declarations.length !== 1 || declarations[0][1] !== instrument.name) {
         throw new Error(
@@ -148,6 +164,9 @@ export class BuilderV2 {
       }
       return source
     })
+
+    // We need to render a couple extra notes based on whether we detected any reverb instruments.
+    const scoreLines = this.renderScoreLines(reverbInstrumentNames, fromBar)
 
     return `<CsoundSynthesizer>
 <CsOptions>
@@ -159,6 +178,7 @@ ksmps  = 128
 nchnls = 2
 
 ${instruments.join("\n")}
+${reverbInstruments.join("\n")}
 </CsInstruments>
 <CsScore>
 

@@ -147,12 +147,12 @@ endin
     const reverbInstrumentNames: string[] = []
     const reverbInstruments: string[] = []
     const instruments = this.instruments.map((instrument) => {
+      const needsReverb = instrument.source.includes("TSE_REVERB")
       const source = [...this.orcRenderers, ...defaultOrcRenderers].reduce(
         (data, renderer) => renderer(data, instrument),
         instrument.source,
       )
-      if (source.match(/TSE_REVERB/gm)) {
-        // TODO: messy
+      if (needsReverb) {
         reverbInstrumentNames.push(instrument.name)
         reverbInstruments.push(this.renderReverb(instrument))
       }

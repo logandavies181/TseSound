@@ -21,10 +21,10 @@ export const renderDefArgs = rf("TSE_DEFAULT_ARGS", `
 export const renderSignal = rf("TSE_SIGNAL", "aSig")
 
 // TODO: allow configuration of pan center: kPan
-export const renderPan = rf("TSE_PATH", `
+export const renderPan = rf("TSE_PAN", `
   kPan = 0.5
-  aSigL = aMixFiltered * cos((kPan) * $M_PI_2)
-  aSigR = aMixFiltered * sin((kPan) * $M_PI_2)
+  aSigL = aSig * cos((kPan) * $M_PI_2)
+  aSigR = aSig * sin((kPan) * $M_PI_2)
 `)
 
 
@@ -35,4 +35,4 @@ export const renderReverb = (source: string, instrument: OrcInstrument) => sourc
   ga${instrument.name}R += aSigR
 `)
 
-export const defaultOrcRenderers: OrcRenderer[] = [renderHelloWorld, renderDefArgs, renderSignal, renderOuts, renderOuts, renderReverb]
+export const defaultOrcRenderers: OrcRenderer[] = [renderHelloWorld, renderDefArgs, renderSignal, renderPan, renderOuts, renderReverb]

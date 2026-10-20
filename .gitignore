@@ -1,5 +1,6 @@
 *.csd
 *.exe
+*.wav
 dist
 node_modules
 

@@ -120,7 +120,7 @@ export class BuilderV2 {
       return line
     })
     for (const iname of reverbInstrumentNames) {
-      ret.push(`i"${iname}_reverb" 0 ${time}`)
+      ret.push(`i"${iname}_reverb" 0 ${time + 2}`)
     }
     return ret
   }
@@ -133,9 +133,23 @@ export class BuilderV2 {
     // TODO: make hardcoded value configurable
     return `instr ${instrument.name}_reverb
 
-  arevL reverb ga${instrument.name}L, 1.5
-  arevR reverb ga${instrument.name}R, 1.5
-  outs arevL, arevR
+  kfeedback = 0.75  ; Reverb time (0 to 1)
+  kcutoff   = 10000 ; Low-pass filter to tame harsh high-end distortion
+
+  aRevL, aRevR reverbsc ga${instrument.name}L, ga${instrument.name}R, kfeedback, kcutoff
+
+  idrymix = 0.7
+  iwetmix = 0.3
+
+  kEnv linsegr 0, 0.3, 1, 0.1, 0.5, 1, 0
+
+  aMasterL = (ga${instrument.name}L * idrymix) + (aRevL * iwetmix * kEnv)
+  aMasterR = (ga${instrument.name}R * idrymix) + (aRevR * iwetmix * kEnv)
+
+  aOutL clip aMasterL, 0, 0.90
+  aOutR clip aMasterR, 0, 0.90
+
+  outs aOutL, aOutR
 
   ga${instrument.name}L  = 0
   ga${instrument.name}R  = 0
@@ -176,6 +190,11 @@ sr     = 48000
 ksmps  = 128
 0dbfs  = 1
 nchnls = 2
+
+${reverbInstrumentNames.map(name => `
+ga${name}L init 0
+ga${name}R init 0
+`).join("\n")}
 
 ${instruments.join("\n")}
 ${reverbInstruments.join("\n")}

@@ -28,7 +28,10 @@ export const renderPan = rf("TSE_PAN", `
 `)
 
 
-export const renderOuts = rf("TSE_OUTS", "outs aSigL, aSigR")
+export const renderOuts = (source: string, instrument: OrcInstrument) => {
+  const out = source.match(/TSE_REVERB/) ? "" : "outs aSigL, aSigR"
+  return rf("TSE_OUTS", out)(source, instrument)
+}
 
 export const renderReverb = (source: string, instrument: OrcInstrument) => source.replaceAll("TSE_REVERB", `
   ga${instrument.name}L += aSigL

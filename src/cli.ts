@@ -1,7 +1,8 @@
 import { Command } from "@cliffy/command"
 import type { Builder } from "./builders.ts"
+import type { BuilderV2 } from "./builders_v2.ts"
 
-export async function run(builder: Builder): Promise<void> {
+export async function run(builder: Builder | BuilderV2): Promise<void> {
   await new Command()
     .name("tsesound")
     .version("0.1.0")

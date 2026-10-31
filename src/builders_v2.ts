@@ -38,10 +38,11 @@ export class BuilderV2 {
     return name
   }
 
-  addBars(bpm: number, timeSignature: number, n: number): void {
+  addBars(bpm: number, timeSignature: number, n: number): BuilderV2 {
     for (let i = 0; i < n; i++) {
       this.bars.push(new Bar(bpm, timeSignature))
     }
+    return this
   }
 
   private _isChordListList(val: Chord[] | Chord[][]): val is Chord[][] {
@@ -53,12 +54,12 @@ export class BuilderV2 {
     instrumentName: string,
     chords: Chord[] | Chord[][],
     amplitude?: number,
-  ): void {
+  ): BuilderV2 {
     if (this._isChordListList(chords)) {
       for (const c of chords) {
         this.pushChords(bar, instrumentName, c, amplitude)
       }
-      return
+      return this
     }
 
     const instrument = this.getInstrumentName(instrumentName)
@@ -80,6 +81,7 @@ export class BuilderV2 {
         currBar++
       }
     }
+    return this
   }
 
   pushChordsMany(
@@ -88,18 +90,18 @@ export class BuilderV2 {
     instrumentName: string,
     chords: Chord[] | Chord[][],
     amplitude?: number,
-  ): void {
+  ): BuilderV2 {
     if (this._isChordListList(chords)) {
       for (const c of chords) {
         this.pushChordsMany(repeats, bar, instrumentName, c, amplitude)
       }
-      return
+      return this
     }
     const repeatedChords: Chord[] = []
     for (let i = 0; i < repeats; i++) {
       repeatedChords.push(...chords)
     }
-    this.pushChords(bar, instrumentName, repeatedChords, amplitude)
+    return this.pushChords(bar, instrumentName, repeatedChords, amplitude)
   }
 
   renderScoreLines(reverbInstrumentNames: string[], fromBar = 0): string[] {

@@ -27,7 +27,6 @@ export const renderPan = rf("TSE_PAN", `
   aSigR = aSig * sin((kPan) * $M_PI_2)
 `)
 
-
 export const renderOuts = (source: string, instrument: OrcInstrument) => {
   const out = source.match(/TSE_REVERB/) ? "" : "outs aSigL, aSigR"
   return rf("TSE_OUTS", out)(source, instrument)
